@@ -1,0 +1,86 @@
+name: Flutter CI
+
+on:
+  push:
+    branches:
+      - master/production
+jobs:
+  test:
+#B1: Test and analyze
+    name: Test and analyze
+    runs-on: ubuntu-22.04
+
+    steps:
+#B1_1: Run actions/checkout@v4
+      - uses: actions/checkout@v4
+#B1_2: Set up JDK 17
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'gradle'
+#B1_3: Setup Flutter
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.x'
+          channel: 'stable'
+          cache: true
+#B1_4: Install dependencies
+      - name: Install dependencies
+        run: flutter pub get
+#B1_5: Verify formatting
+      - name: Verify formatting
+        run: dart format --output=none --set-exit-if-changed .
+# #B1_6: Run tests
+#       - name: Run tests
+#         run: flutter test --coverage
+#B1_7: Upload coverage to Codecov
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+
+      - name: Notify Slack - Test
+        run: |
+          curl -X POST -H 'Content-type: application/json' --data '{"text":"Build completed successfully!"}' ${{ secrets.SLACK_WEBHOOK_URL }}
+
+#B2: Build Android App
+  build-android:
+    name: Build Android App
+    needs: test
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+#B2_1: Run actions/checkout@v4
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'gradle'
+#B2_2: Setup Flutter
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.x'
+          channel: 'stable'
+          cache: true
+#B2_3: Install dependencies
+      - name: Install dependencies
+        run: flutter pub get
+#B2_4: Build debug APK
+      - name: Build debug APK
+        run: flutter build apk --debug
+#B2_5: Upload debug APK
+      - name: Upload debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-debug
+          path: build/app/outputs/flutter-apk/app-debug.apk
+#B2_6: Notify Slack - Build Completed
+      - name: Notify Slack - Build Completed
+        run: |
+          curl -X POST -H 'Content-type: application/json' --data '{"text":"Build completed successfully!"}' ${{ secrets.SLACK_WEBHOOK_URL }}
+     
