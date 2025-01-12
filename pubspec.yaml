@@ -24,6 +24,9 @@ dependencies:
   firebase_storage: ^12.4.0
   googleapis: ^13.2.0
   googleapis_auth: ^1.6.0
+  gcloud: ^0.8.18
+  mime: ^2.0.0
+  cloud_firestore: ^5.6.1
 
 dev_dependencies:
   flutter_test:
@@ -37,3 +40,4 @@ flutter:
     - assets/images/
     - assets/images/hinh1.png
     - assets/icons/
+    - assets/key/credentials.json
