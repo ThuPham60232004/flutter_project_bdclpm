@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter_project_bdclpm/features/load/api/api.dart';
+import 'package:flutter_project_bdclpm/features/expense/presentation/pages/expense_page.dart';
 
 class UploadPage extends StatefulWidget {
   final String? title;
@@ -23,7 +24,7 @@ class _UploadPageState extends State<UploadPage> {
   CloudApi? api;
   bool isUploaded = false;
   bool loading = false;
-
+  String? imageUrl; 
   @override
   void initState() {
     super.initState();
@@ -49,12 +50,12 @@ class _UploadPageState extends State<UploadPage> {
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
-              leading: Icon(Icons.camera, color: Colors.white),
+              leading: Icon(Icons.camera, color: Colors.blue),
               title: Text('Chụp ảnh từ camera'),
               onTap: () => Navigator.pop(context, ImageSource.camera),
             ),
             ListTile(
-              leading: Icon(Icons.photo_library, color: Colors.white),
+              leading: Icon(Icons.photo_library, color: Colors.blue),
               title: Text('Chọn ảnh từ thư viện'),
               onTap: () => Navigator.pop(context, ImageSource.gallery),
             ),
@@ -64,7 +65,6 @@ class _UploadPageState extends State<UploadPage> {
 
       if (source != null) {
         final pickedFile = await picker.pickImage(source: source);
-
         if (pickedFile != null) {
           setState(() {
             _image = File(pickedFile.path);
@@ -80,36 +80,41 @@ class _UploadPageState extends State<UploadPage> {
     }
   }
 
-  Future<void> _saveImage() async {
-    if (_imageBytes == null || _imageName == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Vui lòng chọn ảnh trước khi tải lên.')),
-      );
-      return;
-    }
+
+Future<void> _saveImage() async {
+  if (_imageBytes == null || _imageName == null) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Vui lòng chọn ảnh trước khi tải lên.')),
+    );
+    return;
+  }
+
+  setState(() {
+    loading = true;
+  });
+
+  try {
+    // Gửi ảnh lên Cloud và lấy URL trả về
+    imageUrl = await api!.saveAndGetUrl(_imageName!, _imageBytes!);
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Tải ảnh lên thành công!')),
+    );
 
     setState(() {
-      loading = true;
+      isUploaded = true;
     });
-
-    try {
-      await api!.save(_imageName!, _imageBytes!);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Tải ảnh lên thành công!')),
-      );
-      setState(() {
-        isUploaded = true;
-      });
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Lỗi khi tải ảnh. Vui lòng thử lại.')),
-      );
-    } finally {
-      setState(() {
-        loading = false;
-      });
-    }
+  } catch (e) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Lỗi khi tải ảnh. Vui lòng thử lại.')),
+    );
+  } finally {
+    setState(() {
+      loading = false;
+    });
   }
+}
+
 
   Future<void> _extractText() async {
     if (_imageBytes == null) {
@@ -127,16 +132,18 @@ class _UploadPageState extends State<UploadPage> {
       final resultJson = await api!.extractTextFromImage(_imageBytes!);
       final result = jsonDecode(resultJson);
 
-      setState(() {
-        _extractedText = result['status'] == 'success'
-            ? result['text']
-            : result['message'];
-      });
+      if (result['status'] == 'success') {
+        final text = result['text'];
+        setState(() {
+          _extractedText = text;
+        });
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(result['message'] ?? 'Lỗi trích xuất văn bản.')),
+        );
+      }
     } catch (e) {
       print('Error extracting text: $e');
-      setState(() {
-        _extractedText = 'Lỗi trích xuất văn bản: $e';
-      });
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Lỗi trích xuất văn bản. Vui lòng thử lại.')),
       );
@@ -147,6 +154,55 @@ class _UploadPageState extends State<UploadPage> {
     }
   }
 
+void _navigateToReviewPage() {
+  if (_extractedText.isEmpty || imageUrl == null) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Vui lòng tải ảnh và trích xuất văn bản trước.')),
+    );
+    return;
+  }
+
+  final extractedData = _processExtractedText(_extractedText);
+
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (context) => ExpenseReviewPage(
+        extractedData: extractedData,
+        imageUrl: imageUrl!, 
+      ),
+    ),
+  );
+}
+
+
+  Map<String, dynamic> _processExtractedText(String text) {
+    final lines = text.split('\n');
+    final List<Map<String, dynamic>> items = [];
+    double? total;
+
+    for (var line in lines) {
+      if (line.toLowerCase().contains('tien mat')) {
+        total = double.tryParse(
+            line.replaceAll(RegExp(r'[^\d.]'), '').trim());
+      } else {
+        final match = RegExp(r'^(?<quantity>\d+)?\s*(?<name>.+)\s+(?<price>\d{1,3}(?:,\d{3})*)$')
+            .firstMatch(line);
+        if (match != null) {
+          final name = match.namedGroup('name')?.trim() ?? '';
+          final price = double.tryParse(
+                  match.namedGroup('price')!.replaceAll(',', '').trim()) ??
+              0.0;
+          items.add({"name": name, "price": price});
+        }
+      }
+    }
+
+    return {
+      "total": total ?? 0.0,
+      "items": items,
+    };
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -185,7 +241,7 @@ class _UploadPageState extends State<UploadPage> {
               ElevatedButton.icon(
                 onPressed: _saveImage,
                 icon: Icon(Icons.cloud_upload, color: Colors.white),
-                label: Text('Lưu lên Cloud',style:TextStyle(color: Colors.white)),
+                label: Text('Lưu lên Cloud'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppTheme.primaryColor,
                   padding: EdgeInsets.symmetric(vertical: 12, horizontal: 24),
@@ -199,53 +255,28 @@ class _UploadPageState extends State<UploadPage> {
                   ElevatedButton.icon(
                     onPressed: _extractText,
                     icon: Icon(Icons.text_snippet, color: Colors.white),
-                    label: Text('Trích xuất văn bản', style: TextStyle(color: Colors.white)),
+                    label: Text('Trích xuất văn bản'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppTheme.successColor,
                       padding: EdgeInsets.symmetric(vertical: 12, horizontal: 24),
                     ),
                   ),
                   if (_extractedText.isNotEmpty)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 10.0),
-                      child: Container(
-                        padding: EdgeInsets.all(10),
-                        width: double.infinity,
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(8),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.grey.withOpacity(0.5),
-                              spreadRadius: 2,
-                              blurRadius: 4,
-                            ),
-                          ],
+                    Column(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.only(top: 10.0),
+                          child: Text('Văn bản đã trích xuất: $_extractedText'),
                         ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Văn bản đã trích xuất:',
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: AppTheme.textColor,
-                              ),
-                            ),
-                            SizedBox(height: 10),
-                            Container(
-                              constraints: BoxConstraints(maxHeight: 200),
-                              child: SingleChildScrollView(
-                                child: Text(
-                                  _extractedText,
-                                  style: TextStyle(fontSize: 16),
-                                ),
-                              ),
-                            ),
-                          ],
+                        ElevatedButton.icon(
+                          onPressed: _navigateToReviewPage,
+                          icon: Icon(Icons.check, color: Colors.white),
+                          label: Text('Lưu và tiếp tục'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppTheme.primaryColor,
+                          ),
                         ),
-                      ),
+                      ],
                     ),
                 ],
               ),
@@ -264,8 +295,7 @@ class _UploadPageState extends State<UploadPage> {
 
 class AppTheme {
   static final Color primaryColor = Color(0xFF4A90E2);
-  static final Color secondaryColor = Color(0xFFF5F5F5);
   static final Color accentColor = Color(0xFFFF9500);
+  static final Color successColor = Color(0xFF4CAF50);
   static final Color textColor = Color(0xFF4A4A4A);
-  static final Color successColor = Color.fromARGB(255, 132, 189, 239);
 }

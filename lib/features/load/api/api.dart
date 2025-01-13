@@ -8,33 +8,27 @@ class CloudApi {
   final auth.ServiceAccountCredentials _credentials;
   auth.AutoRefreshingAuthClient? _client;
 
-  // Constructor to initialize the credentials
   CloudApi(String json) : _credentials = auth.ServiceAccountCredentials.fromJson(json);
 
-  // Ensure client initialization with the correct scopes
   Future<void> _initializeClient() async {
     _client ??= await auth.clientViaServiceAccount(
       _credentials,
       [
         'https://www.googleapis.com/auth/cloud-platform',
         'https://www.googleapis.com/auth/cloud-vision',
-      ], // Add required scopes here
+      ],
     );
   }
 
-  // Function to save image to Google Cloud Storage
   Future<ObjectInfo> save(String name, Uint8List imgBytes) async {
-    await _initializeClient();  // Ensure the client is initialized
+    await _initializeClient();
 
-    var storage = Storage(_client!, 'testflutter');  // Replace with your bucket name
-    var bucket = storage.bucket('testflutter');  // Replace with your bucket name
+    var storage = Storage(_client!, 'testflutter');
+    var bucket = storage.bucket('testflutter');
 
     final timestamp = DateTime.now().millisecondsSinceEpoch;
-
-    // Lookup MIME type based on the file extension
     final type = lookupMimeType(name);
 
-    // Write the image bytes to the cloud storage bucket
     return await bucket.writeBytes(name, imgBytes,
         metadata: ObjectMetadata(
           contentType: type,
@@ -42,62 +36,70 @@ class CloudApi {
         ));
   }
 
+  Future<String> saveAndGetUrl(String name, Uint8List imgBytes) async {
+    await _initializeClient();
+
+    var storage = Storage(_client!, 'testflutter');
+    var bucket = storage.bucket('testflutter');
+
+    final timestamp = DateTime.now().millisecondsSinceEpoch;
+    final type = lookupMimeType(name);
+
+    final objectInfo = await bucket.writeBytes(name, imgBytes,
+        metadata: ObjectMetadata(
+          contentType: type,
+          custom: {'timestamp': '$timestamp'},
+        ));
+
+    final fileUrl = 'https://storage.googleapis.com/testflutter/${objectInfo.name}';
+    return fileUrl;
+  }
+
   Future<String> extractTextFromImage(Uint8List imageBytes) async {
-  await _initializeClient();  // Ensure the client is initialized
+    await _initializeClient();
 
-  // Convert Uint8List to base64 string
-  String base64Image = base64Encode(imageBytes);
+    String base64Image = base64Encode(imageBytes);
 
-  // Initialize the Vision API client
-  var visionApi = vision.VisionApi(_client!);
+    var visionApi = vision.VisionApi(_client!);
 
-  // Create the image annotation request
-  var image = vision.Image(content: base64Image);  // Pass base64 encoded string
-  var request = vision.AnnotateImageRequest(
-    image: image,
-    features: [vision.Feature(type: 'DOCUMENT_TEXT_DETECTION')],  // Detect document text
-  );
+    var image = vision.Image(content: base64Image);
+    var request = vision.AnnotateImageRequest(
+      image: image,
+      features: [vision.Feature(type: 'DOCUMENT_TEXT_DETECTION')],
+    );
 
-  var batchRequest = vision.BatchAnnotateImagesRequest(requests: [request]);
+    var batchRequest = vision.BatchAnnotateImagesRequest(requests: [request]);
 
-  try {
-    var batchResponse = await visionApi.images.annotate(batchRequest);
-    
-    // Check if the response has text annotations
-    if (batchResponse.responses != null && batchResponse.responses!.isNotEmpty) {
-      var response = batchResponse.responses!.first;
-      
-      if (response.textAnnotations != null && response.textAnnotations!.isNotEmpty) {
-        var text = response.textAnnotations!.first.description ?? 'No text found';
-        print('Extracted Text: $text');  // Log the extracted text for debugging
+    try {
+      var batchResponse = await visionApi.images.annotate(batchRequest);
 
-        // Return the full response as JSON
-        return jsonEncode({
-          'status': 'success',
-          'text': text,
-          'fullResponse': batchResponse.toJson(),
-        });
+      if (batchResponse.responses != null && batchResponse.responses!.isNotEmpty) {
+        var response = batchResponse.responses!.first;
+        
+        if (response.textAnnotations != null && response.textAnnotations!.isNotEmpty) {
+          var text = response.textAnnotations!.first.description ?? 'No text found';
+          return jsonEncode({
+            'status': 'success',
+            'text': text,
+            'fullResponse': batchResponse.toJson(),
+          });
+        } else {
+          return jsonEncode({
+            'status': 'error',
+            'message': 'No text found',
+          });
+        }
       } else {
-        print('No text annotations found in the image.');
         return jsonEncode({
           'status': 'error',
           'message': 'No text found',
         });
       }
-    } else {
-      print('No responses returned from Vision API.');
+    } catch (e) {
       return jsonEncode({
         'status': 'error',
-        'message': 'No text found',
+        'message': 'Error extracting text: $e',
       });
     }
-  } catch (e) {
-    print('Error while extracting text: $e');
-    return jsonEncode({
-      'status': 'error',
-      'message': 'Error extracting text: $e',
-    });
   }
-}
-
 }
