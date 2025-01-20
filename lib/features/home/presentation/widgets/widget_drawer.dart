@@ -67,6 +67,7 @@ class CustomDrawer extends StatelessWidget {
       {'icon': Icons.star_rate, 'title': 'Reviews', 'route': null},
       {'icon': Icons.account_balance_wallet, 'title': 'Payments', 'route': null},
       {'icon': Icons.dashboard, 'title': 'Thêm chi tiêu', 'route': RouteNames.type},
+      {'icon': Icons.history, 'title': 'LS chi tiêu', 'route': RouteNames.history},
     ];
 
     return menuItems.map((item) {

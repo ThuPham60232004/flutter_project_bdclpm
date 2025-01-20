@@ -5,6 +5,8 @@ import 'package:flutter_project_bdclpm/features/type/presentation/pages/type_pag
 import 'package:flutter_project_bdclpm/features/manual_voice/presentation/pages/manual_voice.dart';
 import 'package:flutter_project_bdclpm/features/pdf_excel/presentation/pages/pdf_excel.dart';
 import 'package:flutter_project_bdclpm/features/scan/presentation/pages/scan.dart';
+import 'package:flutter_project_bdclpm/features/history/pages/history_page.dart';
+
 import 'route_names.dart';
 
 class AppRoutes {
@@ -15,5 +17,6 @@ class AppRoutes {
     RouteNames.type: (context) =>  TypePage(),
     RouteNames.manualvoice: (context) =>  ManualVoicePage(),
     RouteNames.pdfexcel: (context) =>  PdfExcelPage(),
+    RouteNames.history: (context) =>  HistoryPage(),
   };
 }

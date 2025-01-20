@@ -5,4 +5,5 @@ class RouteNames {
   static const String type = '/type';
   static const String manualvoice = '/manualvoice';
   static const String pdfexcel = '/pdfexcel';
+  static const String history = '/history';
 }
