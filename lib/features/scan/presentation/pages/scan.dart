@@ -133,19 +133,14 @@ class _ScanPageState extends State<ScanPage> {
 Map<String, dynamic> parseInvoice(String text) {
   try {
     String normalizedText = removeDiacritics(text.toLowerCase());
-
-    // Lấy tên cửa hàng
     String storeName = RegExp(r'^(.*?)\n', multiLine: true)
             .firstMatch(normalizedText)
             ?.group(1) ??
         "Tên cửa hàng không xác định";
-
-    // Xử lý ngày với nhiều định dạng
     String date = "Ngày không xác định";
-
-    // Kiểm tra định dạng chính: Ngày(date) 1 tháng(month) 1 năm(year) 2024
+    
     RegExpMatch? primaryDateMatch = RegExp(
-            r'ngay\s*\(date\)\s*(\d{1,2})\s*thang\s*\(month\)\s*(\d{1,2})\s*nam\s*\(year\)\s*(\d{4})')
+            r'ngay\s*(\d{1,2})\s*thang\s*(\d{1,2})\s*nam\s*(\d{4})')
         .firstMatch(normalizedText);
     if (primaryDateMatch != null) {
       String day = primaryDateMatch.group(1) ?? "01";
@@ -153,18 +148,17 @@ Map<String, dynamic> parseInvoice(String text) {
       String year = primaryDateMatch.group(3) ?? "1970";
       date = "${day.padLeft(2, '0')}/${month.padLeft(2, '0')}/$year";
     } else {
-      // Kiểm tra định dạng phụ: Date: 2024.12.13 08:16:29+00:00
-      RegExpMatch? secondaryDateMatch = RegExp(r'date:\s*(\d{4})\.(\d{2})\.(\d{2})')
+
+      RegExpMatch? secondaryDateMatch = RegExp(r'(\d{2})-(\d{2})-(\d{4})')
           .firstMatch(normalizedText);
       if (secondaryDateMatch != null) {
-        String year = secondaryDateMatch.group(1) ?? "1970";
+        String day = secondaryDateMatch.group(1) ?? "01";
         String month = secondaryDateMatch.group(2) ?? "01";
-        String day = secondaryDateMatch.group(3) ?? "01";
+        String year = secondaryDateMatch.group(3) ?? "1970";
         date = "${day.padLeft(2, '0')}/${month.padLeft(2, '0')}/$year";
       }
     }
 
-    // Tìm tổng tiền
     String totalAmountMatch = RegExp(
             r'(tien mat|total|tong cong|tong gia tri|tổng cộng|grand total|cộng \(total\))[\s]*([\d,.đd]+)', multiLine: true)
         .firstMatch(normalizedText)
@@ -175,7 +169,6 @@ Map<String, dynamic> parseInvoice(String text) {
     int totalAmount = int.tryParse(totalAmountMatch) ?? 0;
 
     if (totalAmount == 0) {
-      // Fallback: Tìm theo định dạng số có dấu phân cách (e.g., 28.800.000)
       String fallbackAmount = RegExp(r'\b\d{1,3}(?:\.\d{3})+\b')
           .firstMatch(normalizedText)
           ?.group(0)
@@ -184,14 +177,13 @@ Map<String, dynamic> parseInvoice(String text) {
       totalAmount = int.tryParse(fallbackAmount) ?? 0;
     }
 
-    // Mô tả hóa đơn
+
     String description = RegExp(
             r'(phí học phần.*|cảm ơn quý khách.*|bảo hiểm thu hộ.*)', multiLine: true)
         .firstMatch(normalizedText)
         ?.group(0) ??
         "";
 
-    // Lấy thông tin các mặt hàng
     RegExp itemsPattern = RegExp(r'(\d+)\s+(.*?)\s+([\d,.đd]+)', multiLine: true);
     List<Map<String, dynamic>> items = [];
     for (RegExpMatch match in itemsPattern.allMatches(normalizedText)) {
@@ -202,7 +194,6 @@ Map<String, dynamic> parseInvoice(String text) {
       items.add({"name": name, "quantity": quantity, "price": price});
     }
 
-    // Phân loại hóa đơn
     String category = categorizeInvoice(items, totalAmount, storeName);
 
     return {
@@ -429,7 +420,6 @@ Widget _buildPostUploadOptions() {
                           'totalAmount': totalAmount,
                           'category': category,
                           'imageUrl':imageUrl,
-                          // 'type': 'scan',
                         },
                       ),
                     ),
@@ -473,7 +463,7 @@ Widget _buildInvoiceInfo(Map<String, dynamic> data) {
       Text('Tên cửa hàng: ${data["storeName"]}', style: const TextStyle(fontSize: 16)),
       Text('Ngày: ${data["date"]}', style: const TextStyle(fontSize: 16)),
       Text('Tổng số tiền: ${data["totalAmount"]}', style: const TextStyle(fontSize: 16)),
-      Text('Danh mục: ${data["category"]}', style: const TextStyle(fontSize: 16)), // Thêm phần category ở đây
+      Text('Danh mục: ${data["category"]}', style: const TextStyle(fontSize: 16)), 
       const SizedBox(height: 16),
       if (data["items"] != null && data["items"].isNotEmpty) ...[
         const Text('Mặt hàng:', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),

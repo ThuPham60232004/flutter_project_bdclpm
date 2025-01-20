@@ -1,7 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_project_bdclpm/features/manual_voice/presentation/pages/manual_voice.dart';
-import 'package:flutter_project_bdclpm/features/pdf_excel/presentation/pages/pdf_excel.dart';
-import 'package:flutter_project_bdclpm/features/scan/presentation/pages/scan.dart';
 
 class TypePage extends StatefulWidget {
   const TypePage({super.key});
@@ -12,8 +9,6 @@ class TypePage extends StatefulWidget {
 
 class _TypePage extends State<TypePage> {
   String? selectedOption;
-
-  // Các tên route
   static const String manualvoice = '/manualvoice';
   static const String scan = '/scan';
   static const String pdfexcel = '/pdfexcel';

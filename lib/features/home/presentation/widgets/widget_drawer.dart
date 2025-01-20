@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_project_bdclpm/features/auth/presentation/controllers/auth_controller.dart';
 import 'package:flutter_project_bdclpm/core/routes/route_names.dart'; 
+import 'package:firebase_auth/firebase_auth.dart';
 
 class CustomDrawer extends StatelessWidget {
   @override
@@ -22,32 +23,41 @@ class CustomDrawer extends StatelessWidget {
   }
 
   Widget _buildHeader() {
-    return Container(
-      padding: const EdgeInsets.only(top: 50, bottom: 20),
-      child: Column(
-        children: [
-          CircleAvatar(
-            backgroundImage: NetworkImage(
-              AuthController.user?.photoURL ?? 'https://via.placeholder.com/150',
-            ),
-            radius: 40,
+    return StreamBuilder<User?>(
+      stream: AuthController.userStream, 
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return CircularProgressIndicator(); 
+        }
+
+        final user = snapshot.data;
+
+        return Container(
+          padding: const EdgeInsets.only(top: 50, bottom: 20),
+          child: Column(
+            children: [
+              CircleAvatar(
+                backgroundImage: NetworkImage(user?.photoURL ?? 'https://via.placeholder.com/150'),
+                radius: 40,
+              ),
+              const SizedBox(height: 10),
+              Text(
+                user?.displayName ?? 'Guest User',
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              Text(
+                user?.email ?? 'example@email.com',
+                style: const TextStyle(
+                  fontSize: 14,
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 10),
-          Text(
-            AuthController.user?.displayName ?? 'Guest User',
-            style: const TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          Text(
-            AuthController.user?.email ?? 'example@email.com',
-            style: const TextStyle(
-              fontSize: 14,
-            ),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 

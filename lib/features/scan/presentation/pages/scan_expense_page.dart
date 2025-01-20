@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
-
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:intl/intl.dart'; 
 class ScanExpensePage extends StatefulWidget {
   @override
   _ScanExpensePageState createState() => _ScanExpensePageState();
@@ -8,12 +11,49 @@ class ScanExpensePage extends StatefulWidget {
 class _ScanExpensePageState extends State<ScanExpensePage> {
   String? selectedCategory;
   String? imageUrl;
-  bool includeVat = false; 
+  bool includeVat = false;
   final storeNameController = TextEditingController();
   final totalAmountController = TextEditingController();
   final dateController = TextEditingController();
   final descriptionController = TextEditingController();
-  String groupValue = 'invoice'; 
+  String groupValue = 'invoice';
+  List<dynamic> categories = [];
+  bool isLoadingCategories = true;
+
+  @override
+  void initState() {
+    super.initState();
+    fetchCategories();
+  }
+
+  Future<void> fetchCategories() async {
+    try {
+      final response = await http.get(Uri.parse('http://192.168.1.36:4000/api/categories'));
+      if (response.statusCode == 200) {
+        setState(() {
+          categories = json.decode(response.body);
+          isLoadingCategories = false;
+        });
+      } else {
+        throw Exception('Failed to load categories');
+      }
+    } catch (e) {
+      debugPrint('Error fetching categories: $e');
+      setState(() {
+        isLoadingCategories = false;
+      });
+    }
+  }
+
+  void updateDescription(String categoryName) {
+    final category = categories.firstWhere(
+      (category) => category['name'] == categoryName,
+      orElse: () => {},
+    );
+    if (category != null && category.containsKey('description')) {
+      descriptionController.text = category['description'] ?? '';  
+    }
+  }
 
   @override
   void dispose() {
@@ -24,6 +64,74 @@ class _ScanExpensePageState extends State<ScanExpensePage> {
     super.dispose();
   }
 
+
+Future<void> saveExpense() async {
+  try {
+    final prefs = await SharedPreferences.getInstance();
+    final userId = prefs.getString('userId');
+
+    if (userId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Không tìm thấy thông tin người dùng!')),
+      );
+      return;
+    }
+
+    final selectedCategoryId = categories.firstWhere(
+      (category) => category['name'] == selectedCategory,
+      orElse: () => null,
+    )?['_id'];
+
+    if (selectedCategoryId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Vui lòng chọn danh mục hợp lệ!')),
+      );
+      return;
+    }
+
+    DateTime? parsedDate;
+    try {
+      parsedDate = DateFormat('dd/MM/yyyy').parse(dateController.text);
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Ngày không hợp lệ, vui lòng nhập đúng định dạng (dd/MM/yyyy)!')),
+      );
+      return;
+    }
+
+    final formattedDate = parsedDate.toIso8601String();
+
+    final expenseData = {
+      'userId': userId,
+      'storeName': storeNameController.text.trim(),
+      'totalAmount': double.tryParse(totalAmountController.text) ?? 0,
+      'date': formattedDate,
+      'description': descriptionController.text.trim(),
+      'categoryId': selectedCategoryId,
+    };
+
+    final response = await http.post(
+      Uri.parse('http://192.168.1.36:4000/api/expenses'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode(expenseData),
+    );
+
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Lưu chi tiêu thành công!')),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Lỗi khi lưu chi tiêu: ${response.body}')),
+      );
+    }
+  } catch (e) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Đã xảy ra lỗi: $e')),
+    );
+  }
+}
+
   @override
   Widget build(BuildContext context) {
     final arguments = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
@@ -31,12 +139,14 @@ class _ScanExpensePageState extends State<ScanExpensePage> {
     final totalAmount = arguments['totalAmount'];
     final date = arguments['date'];
     selectedCategory = arguments['category'];
-    imageUrl = arguments['imageUrl']; 
-    debugPrint("Image URL: $imageUrl");
+    imageUrl = arguments['imageUrl'];
 
     storeNameController.text = storeName;
     totalAmountController.text = totalAmount.toString();
     dateController.text = date;
+    if (selectedCategory != null && categories.isNotEmpty) {
+      updateDescription(selectedCategory!);
+    }
 
     return Scaffold(
       appBar: AppBar(
@@ -64,7 +174,7 @@ class _ScanExpensePageState extends State<ScanExpensePage> {
                     title: Text('Nhập thủ công'),
                     value: 'manual',
                     groupValue: groupValue,
-                    onChanged: null, // Disabled
+                    onChanged: null,
                   ),
                   RadioListTile(
                     title: Text('Quét hóa đơn'),
@@ -80,13 +190,13 @@ class _ScanExpensePageState extends State<ScanExpensePage> {
                     title: Text('Quét PDF/Excel'),
                     value: 'pdf',
                     groupValue: groupValue,
-                    onChanged: null, // Disabled
+                    onChanged: null, 
                   ),
                   RadioListTile(
                     title: Text('Nhận dạng giọng nói'),
                     value: 'voice',
                     groupValue: groupValue,
-                    onChanged: null, // Disabled
+                    onChanged: null, 
                   ),
                 ],
               ),
@@ -124,10 +234,32 @@ class _ScanExpensePageState extends State<ScanExpensePage> {
                     lastDate: DateTime(2101),
                   );
                   if (selectedDate != null) {
-                    dateController.text = "${selectedDate.toLocal()}".split(' ')[0]; // Format the date
+                    dateController.text = "${selectedDate.toLocal()}".split(' ')[0];
                   }
                 },
               ),
+              SizedBox(height: 16),
+              isLoadingCategories
+                  ? CircularProgressIndicator()
+                  : DropdownButtonFormField<String>(
+                      decoration: InputDecoration(
+                        labelText: 'Danh mục',
+                        border: OutlineInputBorder(),
+                      ),
+                      value: selectedCategory,
+                      items: categories.map<DropdownMenuItem<String>>((category) {
+                        return DropdownMenuItem(
+                          value: category['name'], 
+                          child: Text(category['name']),
+                        );
+                      }).toList(),
+                      onChanged: (value) {
+                        setState(() {
+                          selectedCategory = value;
+                          updateDescription(value!); 
+                        });
+                      },
+                    ),
               SizedBox(height: 16),
               TextField(
                 controller: descriptionController,
@@ -137,39 +269,8 @@ class _ScanExpensePageState extends State<ScanExpensePage> {
                 ),
               ),
               SizedBox(height: 16),
-              DropdownButtonFormField<String>(
-                decoration: InputDecoration(
-                  labelText: 'Danh mục',
-                  border: OutlineInputBorder(),
-                ),
-                value: selectedCategory,
-                items: [
-                  DropdownMenuItem(value: 'Thực phẩm', child: Text('Thực phẩm')),
-                  DropdownMenuItem(value: 'Điện tử', child: Text('Điện tử')),
-                  DropdownMenuItem(value: 'Dịch vụ', child: Text('Dịch vụ')),
-                  DropdownMenuItem(value: 'Thời trang', child: Text('Thời trang')),
-                  DropdownMenuItem(value: 'Vận chuyển', child: Text('Vận chuyển')),
-                  DropdownMenuItem(value: 'Khác', child: Text('Khác')),
-                ],
-                onChanged: (value) {
-                  setState(() {
-                    selectedCategory = value;
-                  });
-                },
-              ),
-              SizedBox(height: 16),
               ElevatedButton(
-                onPressed: () {
-                  final expenseData = {
-                    'storeName': storeNameController.text,
-                    'totalAmount': double.tryParse(totalAmountController.text) ?? 0,
-                    'date': dateController.text,
-                    'description': descriptionController.text,
-                    'category': selectedCategory,
-                    'includeVat': includeVat,
-                  };
-                  debugPrint('Expense data: $expenseData');
-                },
+                onPressed: saveExpense, 
                 child: Text('Lưu chi tiêu'),
                 style: ElevatedButton.styleFrom(
                   minimumSize: Size(double.infinity, 50),

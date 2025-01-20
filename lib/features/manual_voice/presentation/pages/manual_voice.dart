@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ManualVoicePage extends StatefulWidget {
   @override
@@ -13,15 +17,20 @@ class _ManualVoicePageState extends State<ManualVoicePage> {
   final TextEditingController _dateController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
   String? _category;
+  List<dynamic> categories = [];  // List to store categories fetched from the API
+  bool isLoadingCategories = true;
   late stt.SpeechToText _speech;
-  bool _isListening = false;
+  bool _isListeningForStoreName = false;
+  bool _isListeningForAmount = false;
+  bool _isListeningForDescription = false;
+  bool _isListeningForDate = false;
   bool _enableVoiceInput = false;
-  String _speechResult = '';
 
   @override
   void initState() {
     super.initState();
     _speech = stt.SpeechToText();
+    fetchCategories(); 
   }
 
   @override
@@ -33,8 +42,40 @@ class _ManualVoicePageState extends State<ManualVoicePage> {
     super.dispose();
   }
 
+  Future<void> fetchCategories() async {
+    try {
+      final response = await http.get(Uri.parse('http://192.168.1.213:4000/api/categories'));
+      if (response.statusCode == 200) {
+        setState(() {
+          categories = json.decode(response.body);  
+          isLoadingCategories = false;
+        });
+      } else {
+        throw Exception('Failed to load categories');
+      }
+    } catch (e) {
+      debugPrint('Error fetching categories: $e');
+      setState(() {
+        isLoadingCategories = false;
+      });
+    }
+  }
+
+  void updateDescription(String categoryName) {
+    final category = categories.firstWhere(
+      (category) => category['name'] == categoryName,
+      orElse: () => {},
+    );
+    if (category.isNotEmpty && category.containsKey('description')) {
+      _descriptionController.text = category['description'] ?? '';  
+    }
+  }
+
   Future<void> _checkMicrophonePermission() async {
-    var status = await Permission.microphone.request();
+    var status = await Permission.microphone.status;
+    if (status.isDenied || status.isPermanentlyDenied) {
+      status = await Permission.microphone.request();
+    }
     if (!status.isGranted) {
       _showSnackBar('Quyền micro chưa được cấp! Vui lòng cấp quyền trong cài đặt.');
     }
@@ -46,31 +87,116 @@ class _ManualVoicePageState extends State<ManualVoicePage> {
     );
   }
 
-  Future<void> _startListening(TextEditingController controller) async {
+  Future<void> _startListening(TextEditingController controller, String field) async {
     await _checkMicrophonePermission();
     bool available = await _speech.initialize(
-      onStatus: (status) => print('Trạng thái: $status'),
-      onError: (error) => print('Lỗi: ${error.errorMsg}'),
+      onStatus: (status) {
+        debugPrint('Trạng thái: $status');
+      },
+      onError: (error) {
+        debugPrint('Lỗi: ${error.errorMsg}');
+      },
     );
     if (available) {
       setState(() {
-        _isListening = true;
+        if (field == 'storeName') _isListeningForStoreName = true;
+        if (field == 'amount') _isListeningForAmount = true;
+        if (field == 'description') _isListeningForDescription = true;
+        if (field == 'date') _isListeningForDate = true;
       });
-      _speech.listen(onResult: (result) {
-        setState(() {
-          controller.text = result.recognizedWords;
-        });
-      });
+      debugPrint("Listening started for $field...");
+      _speech.listen(
+        onResult: (result) {
+          debugPrint('Speech Result for $field: ${result.recognizedWords}');
+          setState(() {
+            controller.text = result.recognizedWords;
+          });
+        },
+        pauseFor: const Duration(seconds: 5),
+        listenFor: const Duration(seconds: 30), // Listening duration
+        partialResults: true,
+      );
     } else {
-      _showSnackBar('Không thể sử dụng ghi âm');
+      debugPrint("Speech recognition not available.");
+      _showSnackBar('Không thể sử dụng ghi âm, vui lòng kiểm tra quyền hoặc thiết bị.');
     }
   }
 
-  void _stopListening() {
+  void _stopListening(String field) {
     setState(() {
-      _isListening = false;
+      if (field == 'storeName') _isListeningForStoreName = false;
+      if (field == 'amount') _isListeningForAmount = false;
+      if (field == 'description') _isListeningForDescription = false;
+      if (field == 'date') _isListeningForDate = false;
     });
     _speech.stop();
+  }
+
+  Future<void> saveExpense() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final userId = prefs.getString('userId');
+
+      if (userId == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Không tìm thấy thông tin người dùng!')),
+        );
+        return;
+      }
+
+      final selectedCategoryId = categories.firstWhere(
+        (category) => category['name'] == _category, // Use the _category field selected from the dropdown
+        orElse: () => null,
+      )?['_id'];
+
+      if (selectedCategoryId == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Vui lòng chọn danh mục hợp lệ!')),
+        );
+        return;
+      }
+
+      DateTime? parsedDate;
+      try {
+        parsedDate = DateFormat('dd/MM/yyyy').parse(_dateController.text);
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Ngày không hợp lệ, vui lòng nhập đúng định dạng (dd/MM/yyyy)!')),
+        );
+        return;
+      }
+
+      final formattedDate = parsedDate.toIso8601String();
+
+      final expenseData = {
+        'userId': userId,
+        'storeName': _storeNameController.text.trim(),
+        'totalAmount': double.tryParse(_amountController.text) ?? 0,
+        'date': formattedDate,
+        'description': _descriptionController.text.trim(),
+        'categoryId': selectedCategoryId,
+      };
+
+      final response = await http.post(
+        Uri.parse('http://192.168.1.213:4000/api/expenses'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(expenseData),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Lưu chi tiêu thành công!')),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Lỗi khi lưu chi tiêu: ${response.body}')),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Đã xảy ra lỗi: $e')),
+      );
+    }
   }
 
   void _saveExpense() {
@@ -81,21 +207,8 @@ class _ManualVoicePageState extends State<ManualVoicePage> {
       _showSnackBar('Vui lòng nhập đầy đủ thông tin');
       return;
     }
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => ScanExpensePage(),
-        settings: RouteSettings(
-          arguments: {
-            'storeName': _storeNameController.text,
-            'date': _dateController.text,
-            'totalAmount': _amountController.text,
-            'category': _category,
-            'description': _descriptionController.text,
-          },
-        ),
-      ),
-    );
+
+    saveExpense();  
   }
 
   @override
@@ -136,7 +249,7 @@ class _ManualVoicePageState extends State<ManualVoicePage> {
             CheckboxListTile(
               title: const Text("Quét PDF/Excel"),
               value: false,
-              onChanged: null, 
+              onChanged: null,
             ),
             CheckboxListTile(
               title: const Text("Nhận dạng giọng nói"),
@@ -151,6 +264,7 @@ class _ManualVoicePageState extends State<ManualVoicePage> {
             _buildTextField(
               controller: _storeNameController,
               label: 'Tên cửa hàng',
+              field: 'storeName',
               isVoiceInput: _enableVoiceInput,
             ),
             const SizedBox(height: 16),
@@ -159,6 +273,7 @@ class _ManualVoicePageState extends State<ManualVoicePage> {
               label: 'Số tiền',
               prefixText: 'VND ',
               keyboardType: TextInputType.number,
+              field: 'amount',
               isVoiceInput: _enableVoiceInput,
             ),
             const SizedBox(height: 16),
@@ -188,35 +303,34 @@ class _ManualVoicePageState extends State<ManualVoicePage> {
             _buildTextField(
               controller: _descriptionController,
               label: 'Mô tả',
+              field: 'description',
               isVoiceInput: _enableVoiceInput,
             ),
             const SizedBox(height: 16),
-            DropdownButtonFormField<String>(
-              value: _category,
-              hint: const Text('Chọn danh mục'),
-              items: [
-                "Thực phẩm",
-                "Điện tử",
-                "Dịch vụ",
-                "Thời trang",
-                "Vận chuyển",
-                "Khác",
-              ].map((String category) {
-                return DropdownMenuItem<String>(
-                  value: category,
-                  child: Text(category),
-                );
-              }).toList(),
-              onChanged: (value) {
-                setState(() {
-                  _category = value;
-                });
-              },
-              decoration: const InputDecoration(
-                labelText: 'Danh mục',
-                border: OutlineInputBorder(),
-              ),
-            ),
+            isLoadingCategories
+                ? const CircularProgressIndicator()  // Loading indicator when fetching categories
+                : DropdownButtonFormField<String>(
+                    value: _category,
+                    hint: const Text('Chọn danh mục'),
+                    items: categories.map((category) {
+                      return DropdownMenuItem<String>(
+                        value: category['name'],
+                        child: Text(category['name']),
+                      );
+                    }).toList(),
+                    onChanged: (value) {
+                      setState(() {
+                        _category = value;
+                      });
+                      if (value != null) {
+                        updateDescription(value);  // Update description based on selected category
+                      }
+                    },
+                    decoration: const InputDecoration(
+                      labelText: 'Danh mục',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
             const SizedBox(height: 24),
             SizedBox(
               width: double.infinity,
@@ -248,6 +362,7 @@ class _ManualVoicePageState extends State<ManualVoicePage> {
     String? prefixText,
     TextInputType keyboardType = TextInputType.text,
     bool isVoiceInput = false,
+    required String field,
   }) {
     return TextField(
       controller: controller,
@@ -258,28 +373,10 @@ class _ManualVoicePageState extends State<ManualVoicePage> {
         border: const OutlineInputBorder(),
         suffixIcon: isVoiceInput
             ? IconButton(
-                icon: Icon(_isListening ? Icons.mic_off : Icons.mic),
-                onPressed: _isListening
-                    ? _stopListening
-                    : () => _startListening(controller),
+                icon: const Icon(Icons.mic),
+                onPressed: () => _startListening(controller, field),
               )
             : null,
-      ),
-    );
-  }
-}
-
-class ScanExpensePage extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    final arguments = ModalRoute.of(context)?.settings.arguments as Map?;
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Xem lại chi tiêu'),
-        backgroundColor: Colors.white,
-      ),
-      body: Center(
-        child: Text('Dữ liệu: ${arguments.toString()}'),
       ),
     );
   }
