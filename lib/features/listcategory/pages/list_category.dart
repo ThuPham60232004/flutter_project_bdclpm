@@ -7,7 +7,8 @@ class ListCategoryPage extends StatefulWidget {
   final String categoryId;
   final String categoryName;
 
-  const ListCategoryPage({required this.categoryId, required this.categoryName});
+  const ListCategoryPage(
+      {required this.categoryId, required this.categoryName});
 
   @override
   _ListCategoryPageState createState() => _ListCategoryPageState();
@@ -135,6 +136,7 @@ class _ListCategoryPageState extends State<ListCategoryPage> {
     );
   }
 }
+
 class ExpenseCard extends StatelessWidget {
   final Map<String, dynamic> expense;
 

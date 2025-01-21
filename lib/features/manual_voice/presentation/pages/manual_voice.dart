@@ -17,7 +17,7 @@ class _ManualVoicePageState extends State<ManualVoicePage> {
   final TextEditingController _dateController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
   String? _category;
-  List<dynamic> categories = []; 
+  List<dynamic> categories = [];
   bool isLoadingCategories = true;
   late stt.SpeechToText _speech;
   bool _isListeningForStoreName = false;
@@ -30,7 +30,7 @@ class _ManualVoicePageState extends State<ManualVoicePage> {
   void initState() {
     super.initState();
     _speech = stt.SpeechToText();
-    fetchCategories(); 
+    fetchCategories();
   }
 
   @override
@@ -44,10 +44,11 @@ class _ManualVoicePageState extends State<ManualVoicePage> {
 
   Future<void> fetchCategories() async {
     try {
-      final response = await http.get(Uri.parse('https://backend-bdclpm.onrender.com/api/categories'));
+      final response = await http
+          .get(Uri.parse('https://backend-bdclpm.onrender.com/api/categories'));
       if (response.statusCode == 200) {
         setState(() {
-          categories = json.decode(response.body);  
+          categories = json.decode(response.body);
           isLoadingCategories = false;
         });
       } else {
@@ -67,7 +68,7 @@ class _ManualVoicePageState extends State<ManualVoicePage> {
       orElse: () => {},
     );
     if (category.isNotEmpty && category.containsKey('description')) {
-      _descriptionController.text = category['description'] ?? '';  
+      _descriptionController.text = category['description'] ?? '';
     }
   }
 
@@ -77,7 +78,8 @@ class _ManualVoicePageState extends State<ManualVoicePage> {
       status = await Permission.microphone.request();
     }
     if (!status.isGranted) {
-      _showSnackBar('Quyền micro chưa được cấp! Vui lòng cấp quyền trong cài đặt.');
+      _showSnackBar(
+          'Quyền micro chưa được cấp! Vui lòng cấp quyền trong cài đặt.');
     }
   }
 
@@ -87,7 +89,8 @@ class _ManualVoicePageState extends State<ManualVoicePage> {
     );
   }
 
-  Future<void> _startListening(TextEditingController controller, String field) async {
+  Future<void> _startListening(
+      TextEditingController controller, String field) async {
     await _checkMicrophonePermission();
     bool available = await _speech.initialize(
       onStatus: (status) {
@@ -118,7 +121,8 @@ class _ManualVoicePageState extends State<ManualVoicePage> {
       );
     } else {
       debugPrint("Speech recognition not available.");
-      _showSnackBar('Không thể sử dụng ghi âm, vui lòng kiểm tra quyền hoặc thiết bị.');
+      _showSnackBar(
+          'Không thể sử dụng ghi âm, vui lòng kiểm tra quyền hoặc thiết bị.');
     }
   }
 
@@ -145,7 +149,9 @@ class _ManualVoicePageState extends State<ManualVoicePage> {
       }
 
       final selectedCategoryId = categories.firstWhere(
-        (category) => category['name'] == _category, // Use the _category field selected from the dropdown
+        (category) =>
+            category['name'] ==
+            _category, // Use the _category field selected from the dropdown
         orElse: () => null,
       )?['_id'];
 
@@ -161,7 +167,9 @@ class _ManualVoicePageState extends State<ManualVoicePage> {
         parsedDate = DateFormat('dd/MM/yyyy').parse(_dateController.text);
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Ngày không hợp lệ, vui lòng nhập đúng định dạng (dd/MM/yyyy)!')),
+          SnackBar(
+              content: Text(
+                  'Ngày không hợp lệ, vui lòng nhập đúng định dạng (dd/MM/yyyy)!')),
         );
         return;
       }
@@ -208,7 +216,7 @@ class _ManualVoicePageState extends State<ManualVoicePage> {
       return;
     }
 
-    saveExpense();  
+    saveExpense();
   }
 
   @override
@@ -308,7 +316,7 @@ class _ManualVoicePageState extends State<ManualVoicePage> {
             ),
             const SizedBox(height: 16),
             isLoadingCategories
-                ? const CircularProgressIndicator()  // Loading indicator when fetching categories
+                ? const CircularProgressIndicator() // Loading indicator when fetching categories
                 : DropdownButtonFormField<String>(
                     value: _category,
                     hint: const Text('Chọn danh mục'),
@@ -323,7 +331,8 @@ class _ManualVoicePageState extends State<ManualVoicePage> {
                         _category = value;
                       });
                       if (value != null) {
-                        updateDescription(value);  // Update description based on selected category
+                        updateDescription(
+                            value); // Update description based on selected category
                       }
                     },
                     decoration: const InputDecoration(

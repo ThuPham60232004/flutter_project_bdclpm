@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
-import 'package:flutter_project_bdclpm/features/budget/pages/budget_calendar_page.dart';  
+import 'package:flutter_project_bdclpm/features/budget/pages/budget_calendar_page.dart';
 
 class BudgetListPage extends StatefulWidget {
   @override
@@ -21,7 +21,8 @@ class _BudgetListPageState extends State<BudgetListPage> {
 
   Future<void> fetchBudgets() async {
     try {
-      final response = await http.get(Uri.parse('https://backend-bdclpm.onrender.com/api/budgets/'));
+      final response = await http
+          .get(Uri.parse('https://backend-bdclpm.onrender.com/api/budgets/'));
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         setState(() {
@@ -62,7 +63,8 @@ class _BudgetListPageState extends State<BudgetListPage> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => BudgetCalendarPage(budget: budget),
+                            builder: (context) =>
+                                BudgetCalendarPage(budget: budget),
                           ),
                         );
                       },
@@ -82,14 +84,14 @@ class BudgetCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final double amount = (budget['amount'] is int)
-        ? (budget['amount'] as int).toDouble() 
+        ? (budget['amount'] as int).toDouble()
         : budget['amount']?.toDouble() ?? 0.0;
 
     final startBudgetDate = DateTime.parse(budget['startBudgetDate']);
     final endBudgetDate = DateTime.parse(budget['endBudgetDate']);
 
     return GestureDetector(
-      onTap: onTap,  // Khi người dùng bấm vào ngân sách
+      onTap: onTap, // Khi người dùng bấm vào ngân sách
       child: Card(
         color: Colors.white,
         margin: const EdgeInsets.symmetric(vertical: 8),

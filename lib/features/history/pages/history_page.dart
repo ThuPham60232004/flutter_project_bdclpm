@@ -13,7 +13,7 @@ class _HistoryPageState extends State<HistoryPage> {
   List<dynamic> orders = [];
   bool isLoading = true;
   String userId = '';
-  double totalSpent = 0.0; 
+  double totalSpent = 0.0;
 
   @override
   void initState() {
@@ -38,7 +38,8 @@ class _HistoryPageState extends State<HistoryPage> {
   }
 
   Future<void> fetchOrderHistory(String userId) async {
-    final url = Uri.parse('https://backend-bdclpm.onrender.com/api/expenses/$userId');
+    final url =
+        Uri.parse('https://backend-bdclpm.onrender.com/api/expenses/$userId');
     try {
       final response = await http.get(url);
       if (response.statusCode == 200) {
@@ -47,7 +48,8 @@ class _HistoryPageState extends State<HistoryPage> {
           orders = data;
           isLoading = false;
           totalSpent = orders.fold(0.0, (sum, item) {
-            final amount = double.tryParse(item['totalAmount'].toString()) ?? 0.0;
+            final amount =
+                double.tryParse(item['totalAmount'].toString()) ?? 0.0;
             return sum + amount;
           });
         });
@@ -117,7 +119,10 @@ class _HistoryPageState extends State<HistoryPage> {
                   child: Container(
                     decoration: BoxDecoration(
                       gradient: const LinearGradient(
-                        colors: [Color.fromARGB(255, 155, 220, 255), Color.fromARGB(255, 200, 248, 154)],
+                        colors: [
+                          Color.fromARGB(255, 155, 220, 255),
+                          Color.fromARGB(255, 200, 248, 154)
+                        ],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                       ),
@@ -170,12 +175,14 @@ class _HistoryPageState extends State<HistoryPage> {
                           itemCount: orders.length,
                           itemBuilder: (context, index) {
                             final order = orders[index];
-                            final formattedDate = DateFormat('dd/MM/yyyy').format(
+                            final formattedDate =
+                                DateFormat('dd/MM/yyyy').format(
                               DateTime.parse(order['date']),
                             );
 
                             final category = order['categoryId'];
-                            final iconName = category != null ? category['icon'] : 'default';
+                            final iconName =
+                                category != null ? category['icon'] : 'default';
                             final categoryName =
                                 category != null ? category['name'] : 'Unknown';
 
@@ -213,7 +220,8 @@ class _HistoryPageState extends State<HistoryPage> {
                                     overflow: TextOverflow.ellipsis,
                                   ),
                                   subtitle: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Text(
                                         categoryName,

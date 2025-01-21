@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
+
 class ScanExpensePage extends StatefulWidget {
   @override
   _ScanExpensePageState createState() => _ScanExpensePageState();
@@ -28,7 +29,8 @@ class _ScanExpensePageState extends State<ScanExpensePage> {
 
   Future<void> fetchCategories() async {
     try {
-      final response = await http.get(Uri.parse('https://backend-bdclpm.onrender.com/api/categories'));
+      final response = await http
+          .get(Uri.parse('https://backend-bdclpm.onrender.com/api/categories'));
       if (response.statusCode == 200) {
         setState(() {
           categories = json.decode(response.body);
@@ -51,7 +53,7 @@ class _ScanExpensePageState extends State<ScanExpensePage> {
       orElse: () => {},
     );
     if (category != null && category.containsKey('description')) {
-      descriptionController.text = category['description'] ?? '';  
+      descriptionController.text = category['description'] ?? '';
     }
   }
 
@@ -64,77 +66,79 @@ class _ScanExpensePageState extends State<ScanExpensePage> {
     super.dispose();
   }
 
-
-Future<void> saveExpense() async {
-  try {
-    final prefs = await SharedPreferences.getInstance();
-    final userId = prefs.getString('userId');
-
-    if (userId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Không tìm thấy thông tin người dùng!')),
-      );
-      return;
-    }
-
-    final selectedCategoryId = categories.firstWhere(
-      (category) => category['name'] == selectedCategory,
-      orElse: () => null,
-    )?['_id'];
-
-    if (selectedCategoryId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Vui lòng chọn danh mục hợp lệ!')),
-      );
-      return;
-    }
-
-    DateTime? parsedDate;
+  Future<void> saveExpense() async {
     try {
-      parsedDate = DateFormat('dd/MM/yyyy').parse(dateController.text);
+      final prefs = await SharedPreferences.getInstance();
+      final userId = prefs.getString('userId');
+
+      if (userId == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Không tìm thấy thông tin người dùng!')),
+        );
+        return;
+      }
+
+      final selectedCategoryId = categories.firstWhere(
+        (category) => category['name'] == selectedCategory,
+        orElse: () => null,
+      )?['_id'];
+
+      if (selectedCategoryId == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Vui lòng chọn danh mục hợp lệ!')),
+        );
+        return;
+      }
+
+      DateTime? parsedDate;
+      try {
+        parsedDate = DateFormat('dd/MM/yyyy').parse(dateController.text);
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content: Text(
+                  'Ngày không hợp lệ, vui lòng nhập đúng định dạng (dd/MM/yyyy)!')),
+        );
+        return;
+      }
+
+      final formattedDate = parsedDate.toIso8601String();
+
+      final expenseData = {
+        'userId': userId,
+        'storeName': storeNameController.text.trim(),
+        'totalAmount': double.tryParse(totalAmountController.text) ?? 0,
+        'date': formattedDate,
+        'description': descriptionController.text.trim(),
+        'categoryId': selectedCategoryId,
+      };
+
+      final response = await http.post(
+        Uri.parse('https://backend-bdclpm.onrender.com/api/expenses'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(expenseData),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Lưu chi tiêu thành công!')),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Lỗi khi lưu chi tiêu: ${response.body}')),
+        );
+      }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Ngày không hợp lệ, vui lòng nhập đúng định dạng (dd/MM/yyyy)!')),
-      );
-      return;
-    }
-
-    final formattedDate = parsedDate.toIso8601String();
-
-    final expenseData = {
-      'userId': userId,
-      'storeName': storeNameController.text.trim(),
-      'totalAmount': double.tryParse(totalAmountController.text) ?? 0,
-      'date': formattedDate,
-      'description': descriptionController.text.trim(),
-      'categoryId': selectedCategoryId,
-    };
-
-    final response = await http.post(
-      Uri.parse('https://backend-bdclpm.onrender.com/api/expenses'),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode(expenseData),
-    );
-
-    if (response.statusCode == 200 || response.statusCode == 201) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Lưu chi tiêu thành công!')),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Lỗi khi lưu chi tiêu: ${response.body}')),
+        SnackBar(content: Text('Đã xảy ra lỗi: $e')),
       );
     }
-  } catch (e) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Đã xảy ra lỗi: $e')),
-    );
   }
-}
 
   @override
   Widget build(BuildContext context) {
-    final arguments = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+    final arguments =
+        ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
     final storeName = arguments['storeName'];
     final totalAmount = arguments['totalAmount'];
     final date = arguments['date'];
@@ -190,13 +194,13 @@ Future<void> saveExpense() async {
                     title: Text('Quét PDF/Excel'),
                     value: 'pdf',
                     groupValue: groupValue,
-                    onChanged: null, 
+                    onChanged: null,
                   ),
                   RadioListTile(
                     title: Text('Nhận dạng giọng nói'),
                     value: 'voice',
                     groupValue: groupValue,
-                    onChanged: null, 
+                    onChanged: null,
                   ),
                 ],
               ),
@@ -234,7 +238,8 @@ Future<void> saveExpense() async {
                     lastDate: DateTime(2101),
                   );
                   if (selectedDate != null) {
-                    dateController.text = DateFormat('dd/MM/yyyy').format(selectedDate);
+                    dateController.text =
+                        DateFormat('dd/MM/yyyy').format(selectedDate);
                   }
                 },
               ),
@@ -247,16 +252,17 @@ Future<void> saveExpense() async {
                         border: OutlineInputBorder(),
                       ),
                       value: selectedCategory,
-                      items: categories.map<DropdownMenuItem<String>>((category) {
+                      items:
+                          categories.map<DropdownMenuItem<String>>((category) {
                         return DropdownMenuItem(
-                          value: category['name'], 
+                          value: category['name'],
                           child: Text(category['name']),
                         );
                       }).toList(),
                       onChanged: (value) {
                         setState(() {
                           selectedCategory = value;
-                          updateDescription(value!); 
+                          updateDescription(value!);
                         });
                       },
                     ),
@@ -270,7 +276,7 @@ Future<void> saveExpense() async {
               ),
               SizedBox(height: 16),
               ElevatedButton(
-                onPressed: saveExpense, 
+                onPressed: saveExpense,
                 child: Text('Lưu chi tiêu'),
                 style: ElevatedButton.styleFrom(
                   minimumSize: Size(double.infinity, 50),

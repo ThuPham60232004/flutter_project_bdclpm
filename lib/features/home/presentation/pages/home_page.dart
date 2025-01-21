@@ -46,7 +46,8 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> fetchExpensesData() async {
-    final String url = 'https://backend-bdclpm.onrender.com/api/expenses/expenses-chart/$userId';
+    final String url =
+        'https://backend-bdclpm.onrender.com/api/expenses/expenses-chart/$userId';
     try {
       final response = await http.get(Uri.parse(url));
       if (response.statusCode == 200) {
@@ -67,7 +68,8 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> fetchRecentOrders() async {
-    final String url = 'https://backend-bdclpm.onrender.com/api/expenses/$userId';
+    final String url =
+        'https://backend-bdclpm.onrender.com/api/expenses/$userId';
     try {
       final response = await http.get(Uri.parse(url));
       if (response.statusCode == 200) {
@@ -81,7 +83,8 @@ class _HomePageState extends State<HomePage> {
           });
           recentOrders = recentOrders.take(4).toList();
           totalSpent = recentOrders.fold(0.0, (sum, item) {
-            final amount = double.tryParse(item['totalAmount'].toString()) ?? 0.0;
+            final amount =
+                double.tryParse(item['totalAmount'].toString()) ?? 0.0;
             return sum + amount;
           });
         });
@@ -94,10 +97,12 @@ class _HomePageState extends State<HomePage> {
   }
 
   List<PieChartSectionData> _buildChartSections() {
-    final double totalAmount = expensesData.fold(0.0, (sum, item) => sum + (item['totalAmount'] as num).toDouble());
+    final double totalAmount = expensesData.fold(
+        0.0, (sum, item) => sum + (item['totalAmount'] as num).toDouble());
 
     return expensesData.map((expense) {
-      final double percentage = ((expense['totalAmount'] as num).toDouble() / totalAmount) * 100;
+      final double percentage =
+          ((expense['totalAmount'] as num).toDouble() / totalAmount) * 100;
       final int index = expensesData.indexOf(expense);
 
       return PieChartSectionData(
@@ -193,7 +198,10 @@ class _HomePageState extends State<HomePage> {
     return Container(
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: [Color.fromARGB(255, 234, 182, 182), Color.fromARGB(255, 122, 180, 216)],
+          colors: [
+            Color.fromARGB(255, 234, 182, 182),
+            Color.fromARGB(255, 122, 180, 216)
+          ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -232,73 +240,76 @@ class _HomePageState extends State<HomePage> {
               ),
             ],
           ),
-          const Icon(Icons.account_balance_wallet, size: 50, color: Colors.white),
+          const Icon(Icons.account_balance_wallet,
+              size: 50, color: Colors.white),
         ],
       ),
     );
   }
-Widget _buildPieChart() {
-  return Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      const Text(
-        'Chi tiêu theo danh mục',
-        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-      ),
-      const SizedBox(height: 10),
-      Container(
-        height: 300,
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.grey.shade300,
-              blurRadius: 4,
-              offset: const Offset(0, 2),
-            ),
-          ],
-          border: Border.all(
-            color: Colors.black, // Viền đen bên ngoài
-            width: 2,
-          ),
+
+  Widget _buildPieChart() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Chi tiêu theo danh mục',
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
         ),
-        padding: const EdgeInsets.all(16),
-        child: PieChart(
-          PieChartData(
-            sections: _buildChartSections(),
-            centerSpaceRadius: 50,
-            sectionsSpace: 2,
-            borderData: FlBorderData(show: false),
-          ),
-        ),
-      ),
-      const SizedBox(height: 20),
-      // Chú thích danh mục
-      Wrap(
-        spacing: 10,
-        children: expensesData.map((expense) {
-          int index = expensesData.indexOf(expense);
-          return Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 16,
-                height: 16,
-                color: Colors.primaries[index % Colors.primaries.length], // Màu sắc tương ứng
-              ),
-              const SizedBox(width: 5),
-              Text(
-                expense['categoryName'], // Tên danh mục
-                style: const TextStyle(fontSize: 14),
+        const SizedBox(height: 10),
+        Container(
+          height: 300,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.shade300,
+                blurRadius: 4,
+                offset: const Offset(0, 2),
               ),
             ],
-          );
-        }).toList(),
-      ),
-    ],
-  );
-}
+            border: Border.all(
+              color: Colors.black, // Viền đen bên ngoài
+              width: 2,
+            ),
+          ),
+          padding: const EdgeInsets.all(16),
+          child: PieChart(
+            PieChartData(
+              sections: _buildChartSections(),
+              centerSpaceRadius: 50,
+              sectionsSpace: 2,
+              borderData: FlBorderData(show: false),
+            ),
+          ),
+        ),
+        const SizedBox(height: 20),
+        // Chú thích danh mục
+        Wrap(
+          spacing: 10,
+          children: expensesData.map((expense) {
+            int index = expensesData.indexOf(expense);
+            return Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 16,
+                  height: 16,
+                  color: Colors.primaries[
+                      index % Colors.primaries.length], // Màu sắc tương ứng
+                ),
+                const SizedBox(width: 5),
+                Text(
+                  expense['categoryName'], // Tên danh mục
+                  style: const TextStyle(fontSize: 14),
+                ),
+              ],
+            );
+          }).toList(),
+        ),
+      ],
+    );
+  }
 
   Widget _buildRecentTransactions() {
     return Column(
@@ -315,14 +326,17 @@ Widget _buildPieChart() {
           itemCount: recentOrders.length,
           itemBuilder: (context, index) {
             final order = recentOrders[index];
-            final formattedDate = DateFormat('dd/MM/yyyy').format(DateTime.parse(order['createdAt']));
+            final formattedDate = DateFormat('dd/MM/yyyy')
+                .format(DateTime.parse(order['createdAt']));
 
             return Card(
               margin: const EdgeInsets.symmetric(vertical: 8),
               child: ListTile(
                 leading: CircleAvatar(
-                  backgroundColor: getCategoryColor(order['categoryId']['icon'] ?? ''),
-                  child: Icon(getIconFromString(order['categoryId']['icon'] ?? '')),
+                  backgroundColor:
+                      getCategoryColor(order['categoryId']['icon'] ?? ''),
+                  child: Icon(
+                      getIconFromString(order['categoryId']['icon'] ?? '')),
                 ),
                 title: Text(
                   order['storeName'],

@@ -4,11 +4,13 @@ import 'package:googleapis/vision/v1.dart' as vision;
 import 'package:gcloud/storage.dart';
 import 'package:mime/mime.dart';
 import 'dart:convert';
+
 class CloudApi {
   final auth.ServiceAccountCredentials _credentials;
   auth.AutoRefreshingAuthClient? _client;
 
-  CloudApi(String json) : _credentials = auth.ServiceAccountCredentials.fromJson(json);
+  CloudApi(String json)
+      : _credentials = auth.ServiceAccountCredentials.fromJson(json);
 
   Future<void> _initializeClient() async {
     _client ??= await auth.clientViaServiceAccount(
@@ -51,7 +53,8 @@ class CloudApi {
           custom: {'timestamp': '$timestamp'},
         ));
 
-    final fileUrl = 'https://storage.googleapis.com/testflutter/${objectInfo.name}';
+    final fileUrl =
+        'https://storage.googleapis.com/testflutter/${objectInfo.name}';
     return fileUrl;
   }
 
@@ -73,11 +76,14 @@ class CloudApi {
     try {
       var batchResponse = await visionApi.images.annotate(batchRequest);
 
-      if (batchResponse.responses != null && batchResponse.responses!.isNotEmpty) {
+      if (batchResponse.responses != null &&
+          batchResponse.responses!.isNotEmpty) {
         var response = batchResponse.responses!.first;
-        
-        if (response.textAnnotations != null && response.textAnnotations!.isNotEmpty) {
-          var text = response.textAnnotations!.first.description ?? 'No text found';
+
+        if (response.textAnnotations != null &&
+            response.textAnnotations!.isNotEmpty) {
+          var text =
+              response.textAnnotations!.first.description ?? 'No text found';
           return jsonEncode({
             'status': 'success',
             'text': text,

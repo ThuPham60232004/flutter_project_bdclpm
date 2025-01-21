@@ -6,7 +6,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthController {
   static User? user = FirebaseAuth.instance.currentUser;
-  static Stream<User?> get userStream => FirebaseAuth.instance.authStateChanges();
+  static Stream<User?> get userStream =>
+      FirebaseAuth.instance.authStateChanges();
 
   static Future<User?> loginWithGoogle() async {
     try {
@@ -35,12 +36,12 @@ class AuthController {
         return null;
       }
 
-
       if (firebaseUser != null) {
         final idToken = await firebaseUser.getIdToken();
 
         final response = await http.post(
-          Uri.parse('https://backend-bdclpm.onrender.com/api/users/verify-token'),
+          Uri.parse(
+              'https://backend-bdclpm.onrender.com/api/users/verify-token'),
           headers: {'Content-Type': 'application/json'},
           body: jsonEncode({
             'token': idToken,
@@ -52,7 +53,10 @@ class AuthController {
           final firebaseId = responseData['firebaseId'];
           final username = responseData['username'];
           final email = responseData['email'];
-          if (userId == null || firebaseId == null || username == null || email == null) {
+          if (userId == null ||
+              firebaseId == null ||
+              username == null ||
+              email == null) {
             print("One or more required fields are missing from the response");
             return null;
           }

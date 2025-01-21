@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_project_bdclpm/features/auth/presentation/controllers/auth_controller.dart';
-import 'package:flutter_project_bdclpm/core/routes/route_names.dart'; 
+import 'package:flutter_project_bdclpm/core/routes/route_names.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class CustomDrawer extends StatelessWidget {
@@ -24,10 +24,10 @@ class CustomDrawer extends StatelessWidget {
 
   Widget _buildHeader() {
     return StreamBuilder<User?>(
-      stream: AuthController.userStream, 
+      stream: AuthController.userStream,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return CircularProgressIndicator(); 
+          return CircularProgressIndicator();
         }
 
         final user = snapshot.data;
@@ -37,7 +37,8 @@ class CustomDrawer extends StatelessWidget {
           child: Column(
             children: [
               CircleAvatar(
-                backgroundImage: NetworkImage(user?.photoURL ?? 'https://via.placeholder.com/150'),
+                backgroundImage: NetworkImage(
+                    user?.photoURL ?? 'https://via.placeholder.com/150'),
                 radius: 40,
               ),
               const SizedBox(height: 10),
@@ -63,12 +64,36 @@ class CustomDrawer extends StatelessWidget {
 
   List<Widget> _buildMenuItems(BuildContext context) {
     final menuItems = [
-      {'icon': Icons.add_circle_outline, 'title': 'Thêm chi tiêu', 'route': RouteNames.type},
-      {'icon': Icons.history, 'title': 'LS chi tiêu', 'route': RouteNames.history},
-      {'icon': Icons.account_balance_wallet, 'title': 'Thiết lập ngân sách', 'route': RouteNames.addbudget},
-      {'icon': Icons.category, 'title': 'Thiết lập category', 'route': RouteNames.categories},
-      {'icon': Icons.list_alt, 'title': 'Danh sách ngân sách', 'route': RouteNames.listbudgets},
-      {'icon': Icons.pie_chart, 'title': 'Xem biểu đồ chi tiêu', 'route': RouteNames.categorywise},
+      {
+        'icon': Icons.add_circle_outline,
+        'title': 'Thêm chi tiêu',
+        'route': RouteNames.type
+      },
+      {
+        'icon': Icons.history,
+        'title': 'LS chi tiêu',
+        'route': RouteNames.history
+      },
+      {
+        'icon': Icons.account_balance_wallet,
+        'title': 'Thiết lập ngân sách',
+        'route': RouteNames.addbudget
+      },
+      {
+        'icon': Icons.category,
+        'title': 'Thiết lập category',
+        'route': RouteNames.categories
+      },
+      {
+        'icon': Icons.list_alt,
+        'title': 'Danh sách ngân sách',
+        'route': RouteNames.listbudgets
+      },
+      {
+        'icon': Icons.pie_chart,
+        'title': 'Xem biểu đồ chi tiêu',
+        'route': RouteNames.categorywise
+      },
     ];
 
     return menuItems.map((item) {

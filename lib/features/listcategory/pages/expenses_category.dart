@@ -41,7 +41,8 @@ class _CategoryWiseExpensesPageState extends State<CategoryWiseExpensesPage> {
   }
 
   Future<void> fetchExpensesData() async {
-    final String url = 'https://backend-bdclpm.onrender.com/api/expenses/expenses-chart/$userId';
+    final String url =
+        'https://backend-bdclpm.onrender.com/api/expenses/expenses-chart/$userId';
     try {
       final response = await http.get(Uri.parse(url));
       if (response.statusCode == 200) {
@@ -163,12 +164,12 @@ class _CategoryWiseExpensesPageState extends State<CategoryWiseExpensesPage> {
                                 final expense = expensesData[index];
                                 return Card(
                                   elevation: 2,
-                                  margin: const EdgeInsets.symmetric(vertical: 5),
+                                  margin:
+                                      const EdgeInsets.symmetric(vertical: 5),
                                   child: ListTile(
                                     leading: CircleAvatar(
-                                      backgroundColor: Colors
-                                          .primaries[index %
-                                              Colors.primaries.length]
+                                      backgroundColor: Colors.primaries[
+                                              index % Colors.primaries.length]
                                           .withOpacity(0.8),
                                     ),
                                     title: Text(
@@ -179,7 +180,8 @@ class _CategoryWiseExpensesPageState extends State<CategoryWiseExpensesPage> {
                                     ),
                                     subtitle: Text(
                                       'Số tiền: ${expense['totalAmount']}',
-                                      style: const TextStyle(color: Colors.grey),
+                                      style:
+                                          const TextStyle(color: Colors.grey),
                                     ),
                                   ),
                                 );

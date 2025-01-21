@@ -16,14 +16,14 @@ class AppRoutes {
   static final routes = <String, WidgetBuilder>{
     RouteNames.home: (context) => const HomePage(),
     RouteNames.login: (context) => const LoginPage(),
-    RouteNames.scan: (context) =>  ScanPage(),
-    RouteNames.type: (context) =>  TypePage(),
-    RouteNames.manualvoice: (context) =>  ManualVoicePage(),
-    RouteNames.pdfexcel: (context) =>  PdfExcelPage(),
-    RouteNames.history: (context) =>  HistoryPage(),
-    RouteNames.addbudget: (context) =>  CreateBudgetScreen(),
-    RouteNames.categories: (context) =>  CategoryPage(),
-    RouteNames.listbudgets: (context) =>  BudgetListPage(),
-    RouteNames.categorywise: (context) =>  CategoryWiseExpensesPage(),
+    RouteNames.scan: (context) => ScanPage(),
+    RouteNames.type: (context) => TypePage(),
+    RouteNames.manualvoice: (context) => ManualVoicePage(),
+    RouteNames.pdfexcel: (context) => PdfExcelPage(),
+    RouteNames.history: (context) => HistoryPage(),
+    RouteNames.addbudget: (context) => CreateBudgetScreen(),
+    RouteNames.categories: (context) => CategoryPage(),
+    RouteNames.listbudgets: (context) => BudgetListPage(),
+    RouteNames.categorywise: (context) => CategoryWiseExpensesPage(),
   };
 }

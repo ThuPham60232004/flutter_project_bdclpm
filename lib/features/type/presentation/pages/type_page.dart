@@ -18,7 +18,8 @@ class _TypePage extends State<TypePage> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.white,
-        title: const Text('Chọn kiểu nhập', style: TextStyle(color: Colors.black)),
+        title:
+            const Text('Chọn kiểu nhập', style: TextStyle(color: Colors.black)),
         iconTheme: const IconThemeData(color: Colors.black),
       ),
       body: SingleChildScrollView(

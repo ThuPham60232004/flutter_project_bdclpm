@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_project_bdclpm/features/listcategory/pages/list_category.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+
 class CategoryPage extends StatefulWidget {
   @override
   _CategoryPageState createState() => _CategoryPageState();
@@ -19,7 +20,8 @@ class _CategoryPageState extends State<CategoryPage> {
 
   Future<void> fetchCategories() async {
     try {
-      final response = await http.get(Uri.parse('https://backend-bdclpm.onrender.com/api/categories/'));
+      final response = await http.get(
+          Uri.parse('https://backend-bdclpm.onrender.com/api/categories/'));
       if (response.statusCode == 200) {
         setState(() {
           categories = json.decode(response.body);

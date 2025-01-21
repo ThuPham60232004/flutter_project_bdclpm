@@ -22,10 +22,12 @@ class _CreateBudgetScreenState extends State<CreateBudgetScreen> {
   }
 
   void _showSnackBar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(message)));
   }
 
-  Future<bool> isOverlapping(String userId, DateTime startBudgetDate, DateTime endBudgetDate) async {
+  Future<bool> isOverlapping(
+      String userId, DateTime startBudgetDate, DateTime endBudgetDate) async {
     final url = 'https://backend-bdclpm.onrender.com/api/budgets/';
 
     final response = await http.post(
@@ -47,7 +49,8 @@ class _CreateBudgetScreenState extends State<CreateBudgetScreen> {
     }
   }
 
-  Future<bool> createBudget(String userId, double amount, DateTime startBudgetDate, DateTime endBudgetDate) async {
+  Future<bool> createBudget(String userId, double amount,
+      DateTime startBudgetDate, DateTime endBudgetDate) async {
     final url = 'https://backend-bdclpm.onrender.com/api/budgets';
 
     final response = await http.post(
@@ -76,8 +79,10 @@ class _CreateBudgetScreenState extends State<CreateBudgetScreen> {
       for (var budget in budgets) {
         DateTime start = DateTime.parse(budget['startBudgetDate']);
         DateTime end = DateTime.parse(budget['endBudgetDate']);
-        
-        for (DateTime date = start; date.isBefore(end.add(Duration(days: 1))); date = date.add(Duration(days: 1))) {
+
+        for (DateTime date = start;
+            date.isBefore(end.add(Duration(days: 1)));
+            date = date.add(Duration(days: 1))) {
           if (!events.containsKey(date)) {
             events[date] = [];
           }
@@ -195,13 +200,13 @@ class _CreateBudgetScreenState extends State<CreateBudgetScreen> {
       width: double.infinity,
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(vertical: 16,horizontal: 35),
-              shape: RoundedRectangleBorder(
-              side: const BorderSide(color: Colors.black, width: 2),
-              borderRadius: BorderRadius.circular(8),
-            ),
+          backgroundColor: Colors.white,
+          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 35),
+          shape: RoundedRectangleBorder(
+            side: const BorderSide(color: Colors.black, width: 2),
+            borderRadius: BorderRadius.circular(8),
           ),
+        ),
         onPressed: () async {
           String userId = await getUserId();
           if (userId.isEmpty) {
@@ -235,7 +240,7 @@ class _CreateBudgetScreenState extends State<CreateBudgetScreen> {
 
           if (result) {
             _showSnackBar('Tạo ngân sách thành công!');
-            fetchBudgets(); 
+            fetchBudgets();
           } else {
             _showSnackBar('Không thể tạo ngân sách.');
           }
@@ -264,10 +269,12 @@ class _CreateBudgetScreenState extends State<CreateBudgetScreen> {
                 margin: const EdgeInsets.all(0.5),
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
-                  color: const Color.fromARGB(255, 240, 121, 161).withOpacity(0.5),
+                  color:
+                      const Color.fromARGB(255, 240, 121, 161).withOpacity(0.5),
                   shape: BoxShape.rectangle,
                 ),
-                child: Text('${date.day}', style: TextStyle(color: Colors.black)),
+                child:
+                    Text('${date.day}', style: TextStyle(color: Colors.black)),
               );
             }
           }

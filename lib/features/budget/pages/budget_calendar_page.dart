@@ -17,7 +17,7 @@ class BudgetCalendarPage extends StatefulWidget {
 class _BudgetCalendarPageState extends State<BudgetCalendarPage> {
   String _message = '';
   bool _isOverBudget = false;
-  double _totalExpenses = 0.0; 
+  double _totalExpenses = 0.0;
   List<dynamic> _expenses = [];
 
   @override
@@ -29,8 +29,9 @@ class _BudgetCalendarPageState extends State<BudgetCalendarPage> {
   // Hàm lấy userId từ shared_preferences
   Future<String?> _getUserId() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
-    return prefs.getString('userId'); 
+    return prefs.getString('userId');
   }
+
   Future<void> _checkBudgetLimit() async {
     final userId = await _getUserId();
     if (userId == null) {
@@ -40,7 +41,8 @@ class _BudgetCalendarPageState extends State<BudgetCalendarPage> {
       return;
     }
 
-    final url = 'https://backend-bdclpm.onrender.com/api/budgets/check-budget-limit/$userId';
+    final url =
+        'https://backend-bdclpm.onrender.com/api/budgets/check-budget-limit/$userId';
 
     try {
       final response = await http.get(Uri.parse(url));
@@ -50,7 +52,7 @@ class _BudgetCalendarPageState extends State<BudgetCalendarPage> {
         setState(() {
           _message = data['message'];
           _isOverBudget = false;
-          _totalExpenses = data['totalExpenses'].toDouble(); 
+          _totalExpenses = data['totalExpenses'].toDouble();
           _expenses = data['expenses'];
         });
       } else if (response.statusCode == 400) {
@@ -58,8 +60,8 @@ class _BudgetCalendarPageState extends State<BudgetCalendarPage> {
         setState(() {
           _message = 'Chi tiêu vượt quá ngân sách';
           _isOverBudget = true;
-          _totalExpenses = data['totalExpenses'].toDouble(); 
-          _expenses = data['expenses']; 
+          _totalExpenses = data['totalExpenses'].toDouble();
+          _expenses = data['expenses'];
         });
       }
     } catch (error) {
@@ -167,7 +169,6 @@ class _BudgetCalendarPageState extends State<BudgetCalendarPage> {
       ),
     );
   }
-
 
   Widget _buildExpenseList() {
     return Column(
