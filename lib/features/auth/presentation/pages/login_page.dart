@@ -44,7 +44,6 @@ class _LoginPageState extends State<LoginPage> {
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 15),
-                // Subtitle
                 const Padding(
                   padding: EdgeInsets.symmetric(horizontal: 10),
                   child: Text(
@@ -54,7 +53,6 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                 ),
                 const Spacer(),
-                // Login Button (Keep original)
                 FilledButton.tonalIcon(
                   onPressed: () async {
                     try {
