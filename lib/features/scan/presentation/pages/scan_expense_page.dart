@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:intl/intl.dart'; 
+import 'package:intl/intl.dart';
 class ScanExpensePage extends StatefulWidget {
   @override
   _ScanExpensePageState createState() => _ScanExpensePageState();
@@ -28,7 +28,7 @@ class _ScanExpensePageState extends State<ScanExpensePage> {
 
   Future<void> fetchCategories() async {
     try {
-      final response = await http.get(Uri.parse('http://192.168.1.36:4000/api/categories'));
+      final response = await http.get(Uri.parse('https://backend-bdclpm.onrender.com/api/categories'));
       if (response.statusCode == 200) {
         setState(() {
           categories = json.decode(response.body);
@@ -111,7 +111,7 @@ Future<void> saveExpense() async {
     };
 
     final response = await http.post(
-      Uri.parse('http://192.168.1.36:4000/api/expenses'),
+      Uri.parse('https://backend-bdclpm.onrender.com/api/expenses'),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode(expenseData),
     );
@@ -234,7 +234,7 @@ Future<void> saveExpense() async {
                     lastDate: DateTime(2101),
                   );
                   if (selectedDate != null) {
-                    dateController.text = "${selectedDate.toLocal()}".split(' ')[0];
+                    dateController.text = DateFormat('dd/MM/yyyy').format(selectedDate);
                   }
                 },
               ),

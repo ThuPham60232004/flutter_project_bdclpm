@@ -40,7 +40,7 @@ class AuthController {
         final idToken = await firebaseUser.getIdToken();
 
         final response = await http.post(
-          Uri.parse('http://192.168.1.213:4000/api/users/verify-token'),
+          Uri.parse('https://backend-bdclpm.onrender.com/api/users/verify-token'),
           headers: {'Content-Type': 'application/json'},
           body: jsonEncode({
             'token': idToken,

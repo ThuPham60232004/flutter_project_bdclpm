@@ -13,7 +13,7 @@ class _HistoryPageState extends State<HistoryPage> {
   List<dynamic> orders = [];
   bool isLoading = true;
   String userId = '';
-  double totalSpent = 0.0; // Tổng số tiền đã chi tiêu
+  double totalSpent = 0.0; 
 
   @override
   void initState() {
@@ -38,7 +38,7 @@ class _HistoryPageState extends State<HistoryPage> {
   }
 
   Future<void> fetchOrderHistory(String userId) async {
-    final url = Uri.parse('http://192.168.1.213:4000/api/expenses/$userId');
+    final url = Uri.parse('https://backend-bdclpm.onrender.com/api/expenses/$userId');
     try {
       final response = await http.get(url);
       if (response.statusCode == 200) {
@@ -46,8 +46,6 @@ class _HistoryPageState extends State<HistoryPage> {
         setState(() {
           orders = data;
           isLoading = false;
-
-          // Tính tổng tiền đã chi tiêu
           totalSpent = orders.fold(0.0, (sum, item) {
             final amount = double.tryParse(item['totalAmount'].toString()) ?? 0.0;
             return sum + amount;
@@ -114,19 +112,18 @@ class _HistoryPageState extends State<HistoryPage> {
           ? const Center(child: CircularProgressIndicator())
           : Column(
               children: [
-                // Phần hiển thị tổng tiền chi tiêu
                 Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: Container(
                     decoration: BoxDecoration(
                       gradient: const LinearGradient(
-                        colors: [Colors.purple, Colors.red],
+                        colors: [Color.fromARGB(255, 155, 220, 255), Color.fromARGB(255, 200, 248, 154)],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                       ),
                       borderRadius: BorderRadius.circular(15),
                     ),
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(18),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [

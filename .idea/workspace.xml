@@ -5,9 +5,11 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="9ebab42a-4dda-48e1-8cdb-a4bc7473414c" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/flutter_project_bdclpm.iml" beforeDir="false" afterPath="$PROJECT_DIR$/flutter_project_bdclpm.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/features/auth/presentation/controllers/auth_controller.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/features/auth/presentation/controllers/auth_controller.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/libraries/Dart_Packages.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/libraries/Dart_Packages.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/core/routes/app_routes.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/core/routes/app_routes.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/core/routes/route_names.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/core/routes/route_names.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/features/history/pages/history_page.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/features/history/pages/history_page.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/features/home/presentation/pages/home_page.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/features/home/presentation/pages/home_page.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/lib/features/home/presentation/widgets/widget_drawer.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/features/home/presentation/widgets/widget_drawer.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/lib/features/manual_voice/presentation/pages/manual_voice.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/features/manual_voice/presentation/pages/manual_voice.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/lib/features/scan/presentation/pages/scan.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/features/scan/presentation/pages/scan.dart" afterDir="false" />
@@ -39,9 +41,9 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
-  <component name="ProjectColorInfo"><![CDATA[{
-  "associatedIndex": 4
-}]]></component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 4
+}</component>
   <component name="ProjectId" id="2rr0BiQFc898elU2QPi4zZWVndH" />
   <component name="ProjectView">
     <navigator currentView="ProjectPane" proportions="" version="1" />
@@ -55,20 +57,20 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.cidr.known.project.marker": "true",
-    "RunOnceActivity.readMode.enableVisualFormatting": "true",
-    "cf.first.check.clang-format": "false",
-    "cidr.known.project.marker": "true",
-    "dart.analysis.tool.window.visible": "false",
-    "git-widget-placeholder": "feature/upload-functionality",
-    "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "/Users/thupham/flutter_project_bdclpm",
-    "show.migrate.to.gradle.popup": "false"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.cidr.known.project.marker&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.readMode.enableVisualFormatting&quot;: &quot;true&quot;,
+    &quot;cf.first.check.clang-format&quot;: &quot;false&quot;,
+    &quot;cidr.known.project.marker&quot;: &quot;true&quot;,
+    &quot;dart.analysis.tool.window.visible&quot;: &quot;false&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;feature/upload-functionality&quot;,
+    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/Users/thupham/flutter_project_bdclpm&quot;,
+    &quot;show.migrate.to.gradle.popup&quot;: &quot;false&quot;
   }
-}]]></component>
+}</component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">

@@ -37,7 +37,6 @@ class _TypePage extends State<TypePage> {
                 style: TextStyle(),
               ),
               const SizedBox(height: 8),
-              // Tạo danh sách lựa chọn
               buildOptionRow('Nhập thủ công, giọng nói', manualvoice),
               buildOptionRow('Quét hóa đơn', scan),
               buildOptionRow('Quét pdf/excel', pdfexcel),
@@ -59,7 +58,7 @@ class _TypePage extends State<TypePage> {
               selectedOption = newValue;
             });
             if (newValue != null) {
-              Navigator.pushNamed(context, newValue); // Điều hướng đến route tương ứng.
+              Navigator.pushNamed(context, newValue);
             }
           },
           activeColor: Colors.grey,

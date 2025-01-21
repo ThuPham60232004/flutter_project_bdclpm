@@ -63,11 +63,12 @@ class CustomDrawer extends StatelessWidget {
 
   List<Widget> _buildMenuItems(BuildContext context) {
     final menuItems = [
-      {'icon': Icons.notifications_active, 'title': 'Notifications', 'route': null},
-      {'icon': Icons.star_rate, 'title': 'Reviews', 'route': null},
-      {'icon': Icons.account_balance_wallet, 'title': 'Payments', 'route': null},
-      {'icon': Icons.dashboard, 'title': 'Thêm chi tiêu', 'route': RouteNames.type},
+      {'icon': Icons.add_circle_outline, 'title': 'Thêm chi tiêu', 'route': RouteNames.type},
       {'icon': Icons.history, 'title': 'LS chi tiêu', 'route': RouteNames.history},
+      {'icon': Icons.account_balance_wallet, 'title': 'Thiết lập ngân sách', 'route': RouteNames.addbudget},
+      {'icon': Icons.category, 'title': 'Thiết lập category', 'route': RouteNames.categories},
+      {'icon': Icons.list_alt, 'title': 'Danh sách ngân sách', 'route': RouteNames.listbudgets},
+      {'icon': Icons.pie_chart, 'title': 'Xem biểu đồ chi tiêu', 'route': RouteNames.categorywise},
     ];
 
     return menuItems.map((item) {

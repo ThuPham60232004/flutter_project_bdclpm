@@ -6,4 +6,8 @@ class RouteNames {
   static const String manualvoice = '/manualvoice';
   static const String pdfexcel = '/pdfexcel';
   static const String history = '/history';
+  static const String addbudget = '/addbudget';
+  static const String categories = '/categories';
+  static const String listbudgets = '/listbudgets';
+  static const String categorywise = '/categorywise';
 }

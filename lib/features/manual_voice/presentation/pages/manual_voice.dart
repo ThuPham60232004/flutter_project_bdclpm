@@ -17,7 +17,7 @@ class _ManualVoicePageState extends State<ManualVoicePage> {
   final TextEditingController _dateController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
   String? _category;
-  List<dynamic> categories = [];  // List to store categories fetched from the API
+  List<dynamic> categories = []; 
   bool isLoadingCategories = true;
   late stt.SpeechToText _speech;
   bool _isListeningForStoreName = false;
@@ -44,7 +44,7 @@ class _ManualVoicePageState extends State<ManualVoicePage> {
 
   Future<void> fetchCategories() async {
     try {
-      final response = await http.get(Uri.parse('http://192.168.1.213:4000/api/categories'));
+      final response = await http.get(Uri.parse('https://backend-bdclpm.onrender.com/api/categories'));
       if (response.statusCode == 200) {
         setState(() {
           categories = json.decode(response.body);  
@@ -178,7 +178,7 @@ class _ManualVoicePageState extends State<ManualVoicePage> {
       };
 
       final response = await http.post(
-        Uri.parse('http://192.168.1.213:4000/api/expenses'),
+        Uri.parse('https://backend-bdclpm.onrender.com/api/expenses'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode(expenseData),
       );

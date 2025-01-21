@@ -40,6 +40,7 @@ class _ScanPageState extends State<ScanPage> {
     }
   }
 
+
   Future<void> _getImage() async {
     try {
       final source = await showModalBottomSheet<ImageSource>(
@@ -129,6 +130,47 @@ class _ScanPageState extends State<ScanPage> {
     String withoutDiacritics = removeDiacritics(text);
     return capitalizeFirstLetter(withoutDiacritics);
   }
+String extractDate(String text) {
+  try {
+    // Cố gắng tìm ngày theo các định dạng khác nhau
+    String normalizedText = removeDiacritics(text.toLowerCase());
+
+    // Tìm ngày theo định dạng "ngày dd tháng mm năm yyyy"
+    RegExpMatch? primaryDateMatch = RegExp(
+            r'ngày\s*(\d{1,2})\s*tháng\s*(\d{1,2})\s*năm\s*(\d{4})')
+        .firstMatch(normalizedText);
+    if (primaryDateMatch != null) {
+      String day = primaryDateMatch.group(1) ?? "01";
+      String month = primaryDateMatch.group(2) ?? "01";
+      String year = primaryDateMatch.group(3) ?? "1970";
+      return "${day.padLeft(2, '0')}/${month.padLeft(2, '0')}/$year";
+    }
+
+    // Tìm ngày theo định dạng "dd-mm-yyyy"
+    RegExpMatch? secondaryDateMatch = RegExp(r'(\d{2})-(\d{2})-(\d{4})')
+        .firstMatch(normalizedText);
+    if (secondaryDateMatch != null) {
+      String day = secondaryDateMatch.group(1) ?? "01";
+      String month = secondaryDateMatch.group(2) ?? "01";
+      String year = secondaryDateMatch.group(3) ?? "1970";
+      return "${day.padLeft(2, '0')}/${month.padLeft(2, '0')}/$year";
+    }
+
+    // Nếu không tìm thấy, trả về ngày hiện tại
+    DateTime currentDate = DateTime.now();
+    String currentDay = currentDate.day.toString().padLeft(2, '0');
+    String currentMonth = currentDate.month.toString().padLeft(2, '0');
+    String currentYear = currentDate.year.toString();
+    return "$currentDay/$currentMonth/$currentYear";
+  } catch (e) {
+    debugPrint('Lỗi khi tìm ngày: $e');
+    DateTime currentDate = DateTime.now();
+    String currentDay = currentDate.day.toString().padLeft(2, '0');
+    String currentMonth = currentDate.month.toString().padLeft(2, '0');
+    String currentYear = currentDate.year.toString();
+    return "$currentDay/$currentMonth/$currentYear";
+  }
+}
 
 Map<String, dynamic> parseInvoice(String text) {
   try {
@@ -137,30 +179,10 @@ Map<String, dynamic> parseInvoice(String text) {
             .firstMatch(normalizedText)
             ?.group(1) ??
         "Tên cửa hàng không xác định";
-    String date = "Ngày không xác định";
     
-    RegExpMatch? primaryDateMatch = RegExp(
-            r'ngay\s*(\d{1,2})\s*thang\s*(\d{1,2})\s*nam\s*(\d{4})')
-        .firstMatch(normalizedText);
-    if (primaryDateMatch != null) {
-      String day = primaryDateMatch.group(1) ?? "01";
-      String month = primaryDateMatch.group(2) ?? "01";
-      String year = primaryDateMatch.group(3) ?? "1970";
-      date = "${day.padLeft(2, '0')}/${month.padLeft(2, '0')}/$year";
-    } else {
-
-      RegExpMatch? secondaryDateMatch = RegExp(r'(\d{2})-(\d{2})-(\d{4})')
-          .firstMatch(normalizedText);
-      if (secondaryDateMatch != null) {
-        String day = secondaryDateMatch.group(1) ?? "01";
-        String month = secondaryDateMatch.group(2) ?? "01";
-        String year = secondaryDateMatch.group(3) ?? "1970";
-        date = "${day.padLeft(2, '0')}/${month.padLeft(2, '0')}/$year";
-      }
-    }
-
+      String date = extractDate(normalizedText);
     String totalAmountMatch = RegExp(
-            r'(tien mat|total|tong cong|tong gia tri|tổng cộng|grand total|cộng \(total\))[\s]*([\d,.đd]+)', multiLine: true)
+            r'(tiền mặt|total|tổng cộng|tổng giá trị|grand total|cộng \(total\))[\s]*([\d,.đd]+)', multiLine: true)
         .firstMatch(normalizedText)
         ?.group(2)
         ?.replaceAll(RegExp(r'[.,đd]'), '') ??
@@ -176,7 +198,6 @@ Map<String, dynamic> parseInvoice(String text) {
           "0";
       totalAmount = int.tryParse(fallbackAmount) ?? 0;
     }
-
 
     String description = RegExp(
             r'(phí học phần.*|cảm ơn quý khách.*|bảo hiểm thu hộ.*)', multiLine: true)

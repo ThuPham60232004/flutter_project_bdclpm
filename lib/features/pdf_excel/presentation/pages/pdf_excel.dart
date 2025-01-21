@@ -30,7 +30,7 @@ class _PdfExcelPageState extends State<PdfExcelPage> {
 
   Future<void> fetchCategories() async {
     try {
-      final response = await http.get(Uri.parse('http://192.168.1.213:4000/api/categories'));
+      final response = await http.get(Uri.parse('https://backend-bdclpm.onrender.com/api/categories'));
       if (response.statusCode == 200) {
         categories = json.decode(response.body);
       } else {
@@ -218,7 +218,7 @@ class _PdfExcelPageState extends State<PdfExcelPage> {
       };
 
       final response = await http.post(
-        Uri.parse('http://192.168.1.213:4000/api/expenses'),
+        Uri.parse('https://backend-bdclpm.onrender.com/api/expenses'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode(expenseData),
       );
