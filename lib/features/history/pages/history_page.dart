@@ -86,17 +86,17 @@ class _HistoryPageState extends State<HistoryPage> {
   Color getCategoryColor(String iconName) {
     switch (iconName) {
       case 'food':
-        return Colors.green.shade100;
+        return Colors.green.shade300;
       case 'devices':
-        return Colors.blue.shade100;
+        return Colors.blue.shade300;
       case 'service':
-        return Colors.yellow.shade100;
+        return Colors.orange.shade300;
       case 'local_shipping':
-        return Colors.red.shade100;
+        return Colors.red.shade300;
       case 'style':
-        return Colors.purple.shade100;
+        return Colors.purple.shade300;
       default:
-        return Colors.grey.shade300;
+        return Colors.grey.shade400;
     }
   }
 
@@ -104,12 +104,15 @@ class _HistoryPageState extends State<HistoryPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Lịch Sử Giao Dịch'),
+        title: const Text(
+          'Lịch Sử Giao Dịch',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
-        elevation: 0,
+        elevation: 1,
       ),
-      backgroundColor: Colors.white,
+      backgroundColor: Colors.grey.shade100,
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
           : Column(
@@ -119,16 +122,20 @@ class _HistoryPageState extends State<HistoryPage> {
                   child: Container(
                     decoration: BoxDecoration(
                       gradient: const LinearGradient(
-                        colors: [
-                          Color.fromARGB(255, 155, 220, 255),
-                          Color.fromARGB(255, 200, 248, 154)
-                        ],
+                        colors: [Color(0xFF76C7C0), Color(0xFF8FCE84)],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                       ),
                       borderRadius: BorderRadius.circular(15),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 8,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
                     ),
-                    padding: const EdgeInsets.all(18),
+                    padding: const EdgeInsets.all(20),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -147,7 +154,7 @@ class _HistoryPageState extends State<HistoryPage> {
                             Text(
                               '-${NumberFormat.currency(locale: 'vi', symbol: '₫').format(totalSpent)}',
                               style: const TextStyle(
-                                fontSize: 20,
+                                fontSize: 22,
                                 fontWeight: FontWeight.bold,
                                 color: Colors.white,
                               ),
@@ -168,7 +175,8 @@ class _HistoryPageState extends State<HistoryPage> {
                       ? const Center(
                           child: Text(
                             'Không có giao dịch nào.',
-                            style: TextStyle(fontSize: 16),
+                            style:
+                                TextStyle(fontSize: 16, color: Colors.black54),
                           ),
                         )
                       : ListView.builder(
@@ -192,23 +200,24 @@ class _HistoryPageState extends State<HistoryPage> {
                               child: Container(
                                 decoration: BoxDecoration(
                                   color: Colors.white,
-                                  borderRadius: BorderRadius.circular(10),
+                                  borderRadius: BorderRadius.circular(12),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: Colors.grey.shade300,
-                                      blurRadius: 4,
-                                      offset: const Offset(0, 2),
+                                      color: Colors.black.withOpacity(0.05),
+                                      blurRadius: 6,
+                                      offset: const Offset(0, 3),
                                     ),
                                   ],
                                 ),
                                 child: ListTile(
+                                  contentPadding: const EdgeInsets.all(12),
                                   leading: CircleAvatar(
                                     backgroundColor: getCategoryColor(iconName),
-                                    radius: 30,
+                                    radius: 28,
                                     child: Icon(
                                       getIconFromString(iconName),
                                       color: Colors.white,
-                                      size: 30,
+                                      size: 26,
                                     ),
                                   ),
                                   title: Text(
@@ -227,7 +236,7 @@ class _HistoryPageState extends State<HistoryPage> {
                                         categoryName,
                                         style: const TextStyle(
                                           fontSize: 14,
-                                          color: Colors.grey,
+                                          color: Colors.black54,
                                         ),
                                       ),
                                       Text(
@@ -254,7 +263,7 @@ class _HistoryPageState extends State<HistoryPage> {
                                         formattedDate,
                                         style: const TextStyle(
                                           fontSize: 12,
-                                          color: Colors.grey,
+                                          color: Colors.black54,
                                         ),
                                       ),
                                     ],
