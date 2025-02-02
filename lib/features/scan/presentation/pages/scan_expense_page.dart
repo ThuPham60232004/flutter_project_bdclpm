@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter/services.dart';
 
 class ScanExpensePage extends StatefulWidget {
   @override
@@ -13,10 +14,10 @@ class _ScanExpensePageState extends State<ScanExpensePage> {
   String? selectedCategory;
   String? imageUrl;
   bool includeVat = false;
-  final storeNameController = TextEditingController();
-  final totalAmountController = TextEditingController();
-  final dateController = TextEditingController();
-  final descriptionController = TextEditingController();
+  final TextEditingController storeNameController = TextEditingController();
+  final TextEditingController totalAmountController = TextEditingController();
+  final TextEditingController dateController = TextEditingController();
+  final TextEditingController descriptionController = TextEditingController();
   String groupValue = 'invoice';
   List<dynamic> categories = [];
   bool isLoadingCategories = true;
@@ -25,6 +26,20 @@ class _ScanExpensePageState extends State<ScanExpensePage> {
   void initState() {
     super.initState();
     fetchCategories();
+    Future.delayed(Duration.zero, () {
+      final arguments =
+          ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+      if (arguments != null) {
+        storeNameController.text = arguments['storeName'] ?? '';
+        totalAmountController.text = arguments['totalAmount']?.toString() ?? '';
+        dateController.text = arguments['date'] ?? '';
+        selectedCategory = arguments['category'];
+        imageUrl = arguments['imageUrl'];
+        if (selectedCategory != null) {
+          updateDescription(selectedCategory!);
+        }
+      }
+    });
   }
 
   Future<void> fetchCategories() async {
@@ -52,7 +67,7 @@ class _ScanExpensePageState extends State<ScanExpensePage> {
       (category) => category['name'] == categoryName,
       orElse: () => {},
     );
-    if (category != null && category.containsKey('description')) {
+    if (category.isNotEmpty && category.containsKey('description')) {
       descriptionController.text = category['description'] ?? '';
     }
   }
@@ -92,12 +107,10 @@ class _ScanExpensePageState extends State<ScanExpensePage> {
 
       DateTime? parsedDate;
       try {
-        parsedDate = DateFormat('dd/MM/yyyy').parse(dateController.text);
+        parsedDate = DateFormat('dd/MM/yyyy').parseStrict(dateController.text);
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-              content: Text(
-                  'Ngày không hợp lệ, vui lòng nhập đúng định dạng (dd/MM/yyyy)!')),
+          SnackBar(content: Text('Ngày không hợp lệ, vui lòng chọn lại!')),
         );
         return;
       }
@@ -123,6 +136,7 @@ class _ScanExpensePageState extends State<ScanExpensePage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Lưu chi tiêu thành công!')),
         );
+        Navigator.of(context).popUntil((route) => route.isFirst);
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Lỗi khi lưu chi tiêu: ${response.body}')),
@@ -137,21 +151,6 @@ class _ScanExpensePageState extends State<ScanExpensePage> {
 
   @override
   Widget build(BuildContext context) {
-    final arguments =
-        ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
-    final storeName = arguments['storeName'];
-    final totalAmount = arguments['totalAmount'];
-    final date = arguments['date'];
-    selectedCategory = arguments['category'];
-    imageUrl = arguments['imageUrl'];
-
-    storeNameController.text = storeName;
-    totalAmountController.text = totalAmount.toString();
-    dateController.text = date;
-    if (selectedCategory != null && categories.isNotEmpty) {
-      updateDescription(selectedCategory!);
-    }
-
     return Scaffold(
       appBar: AppBar(
         title: Text('Thêm chi tiêu'),
@@ -167,42 +166,33 @@ class _ScanExpensePageState extends State<ScanExpensePage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                'Bạn muốn nhập chi tiêu như thế nào?',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              RadioListTile(
+                title: Text('Nhập thủ công'),
+                value: 'manual',
+                groupValue: groupValue,
+                onChanged: null,
               ),
-              SizedBox(height: 8),
-              Column(
-                children: [
-                  RadioListTile(
-                    title: Text('Nhập thủ công'),
-                    value: 'manual',
-                    groupValue: groupValue,
-                    onChanged: null,
-                  ),
-                  RadioListTile(
-                    title: Text('Quét hóa đơn'),
-                    value: 'invoice',
-                    groupValue: groupValue,
-                    onChanged: (value) {
-                      setState(() {
-                        groupValue = value!;
-                      });
-                    },
-                  ),
-                  RadioListTile(
-                    title: Text('Quét PDF/Excel'),
-                    value: 'pdf',
-                    groupValue: groupValue,
-                    onChanged: null,
-                  ),
-                  RadioListTile(
-                    title: Text('Nhận dạng giọng nói'),
-                    value: 'voice',
-                    groupValue: groupValue,
-                    onChanged: null,
-                  ),
-                ],
+              RadioListTile(
+                title: Text('Quét hóa đơn'),
+                value: 'invoice',
+                groupValue: groupValue,
+                onChanged: (value) {
+                  setState(() {
+                    groupValue = value!;
+                  });
+                },
+              ),
+              RadioListTile(
+                title: Text('Quét PDF/Excel'),
+                value: 'pdf',
+                groupValue: groupValue,
+                onChanged: null,
+              ),
+              RadioListTile(
+                title: Text('Nhận dạng giọng nói'),
+                value: 'voice',
+                groupValue: groupValue,
+                onChanged: null,
               ),
               SizedBox(height: 16),
               TextField(
@@ -221,15 +211,18 @@ class _ScanExpensePageState extends State<ScanExpensePage> {
                   border: OutlineInputBorder(),
                 ),
                 keyboardType: TextInputType.number,
+                inputFormatters: [
+                  FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
+                ],
               ),
               SizedBox(height: 16),
               TextField(
                 controller: dateController,
+                readOnly: true,
                 decoration: InputDecoration(
                   labelText: 'Ngày',
                   border: OutlineInputBorder(),
                 ),
-                readOnly: true,
                 onTap: () async {
                   DateTime? selectedDate = await showDatePicker(
                     context: context,
