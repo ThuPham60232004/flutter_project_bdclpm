@@ -5,6 +5,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter/services.dart';
 
 class ManualVoicePage extends StatefulWidget {
   @override
@@ -116,7 +117,7 @@ class _ManualVoicePageState extends State<ManualVoicePage> {
           });
         },
         pauseFor: const Duration(seconds: 5),
-        listenFor: const Duration(seconds: 30), // Listening duration
+        listenFor: const Duration(seconds: 30),
         partialResults: true,
       );
     } else {
@@ -149,9 +150,7 @@ class _ManualVoicePageState extends State<ManualVoicePage> {
       }
 
       final selectedCategoryId = categories.firstWhere(
-        (category) =>
-            category['name'] ==
-            _category, // Use the _category field selected from the dropdown
+        (category) => category['name'] == _category,
         orElse: () => null,
       )?['_id'];
 
@@ -195,6 +194,7 @@ class _ManualVoicePageState extends State<ManualVoicePage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Lưu chi tiêu thành công!')),
         );
+        Navigator.of(context).popUntil((route) => route.isFirst);
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Lỗi khi lưu chi tiêu: ${response.body}')),
@@ -316,7 +316,7 @@ class _ManualVoicePageState extends State<ManualVoicePage> {
             ),
             const SizedBox(height: 16),
             isLoadingCategories
-                ? const CircularProgressIndicator() // Loading indicator when fetching categories
+                ? const CircularProgressIndicator()
                 : DropdownButtonFormField<String>(
                     value: _category,
                     hint: const Text('Chọn danh mục'),
@@ -331,8 +331,7 @@ class _ManualVoicePageState extends State<ManualVoicePage> {
                         _category = value;
                       });
                       if (value != null) {
-                        updateDescription(
-                            value); // Update description based on selected category
+                        updateDescription(value);
                       }
                     },
                     decoration: const InputDecoration(
@@ -376,6 +375,8 @@ class _ManualVoicePageState extends State<ManualVoicePage> {
     return TextField(
       controller: controller,
       keyboardType: keyboardType,
+      inputFormatters:
+          field == 'amount' ? [FilteringTextInputFormatter.digitsOnly] : [],
       decoration: InputDecoration(
         labelText: label,
         prefixText: prefixText,

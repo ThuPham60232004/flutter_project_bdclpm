@@ -17,7 +17,7 @@ class ListCategoryPage extends StatefulWidget {
 class _ListCategoryPageState extends State<ListCategoryPage> {
   List<dynamic> expenses = [];
   bool isLoading = true;
-  double totalSpent = 0.0; // Biến lưu tổng tiền chi tiêu
+  double totalSpent = 0.0;
 
   @override
   void initState() {
@@ -33,7 +33,7 @@ class _ListCategoryPageState extends State<ListCategoryPage> {
         final data = json.decode(response.body);
         setState(() {
           expenses = data;
-          totalSpent = calculateTotalSpent(data); // Tính tổng tiền
+          totalSpent = calculateTotalSpent(data);
           isLoading = false;
         });
       } else {
@@ -43,7 +43,6 @@ class _ListCategoryPageState extends State<ListCategoryPage> {
       setState(() {
         isLoading = false;
       });
-      print('Lỗi tải chi tiêu: $error');
     }
   }
 
@@ -56,31 +55,39 @@ class _ListCategoryPageState extends State<ListCategoryPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Chi tiêu: ${widget.categoryName}'),
+        title: Center(
+          child: Text('Chi tiêu: ${widget.categoryName}',
+              style:
+                  TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+        ),
         backgroundColor: Colors.white,
+        elevation: 0,
+        iconTheme: IconThemeData(color: Colors.black),
       ),
       body: isLoading
           ? Center(child: CircularProgressIndicator())
           : Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: Container(
                     decoration: BoxDecoration(
-                      gradient: const LinearGradient(
+                      gradient: LinearGradient(
                         colors: [
-                          Color.fromARGB(255, 155, 220, 255),
-                          Color.fromARGB(255, 200, 248, 154)
+                          const Color.fromARGB(255, 134, 176, 250),
+                          const Color.fromARGB(255, 176, 138, 242)
                         ],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                       ),
-                      borderRadius: BorderRadius.circular(15),
+                      borderRadius: BorderRadius.circular(20),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.white.withOpacity(0.1),
-                          blurRadius: 8,
-                          offset: Offset(0, 4),
+                          color: Colors.black26,
+                          blurRadius: 10,
+                          offset: Offset(0, 5),
                         ),
                       ],
                     ),
@@ -91,30 +98,22 @@ class _ListCategoryPageState extends State<ListCategoryPage> {
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text(
-                              'Tổng chi tiêu',
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
+                            Text('Tổng chi tiêu',
+                                style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white)),
+                            SizedBox(height: 8),
                             Text(
-                              '-${NumberFormat.currency(locale: 'vi', symbol: '₫').format(totalSpent)}',
-                              style: const TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
-                            ),
+                                '-${NumberFormat.currency(locale: 'vi', symbol: '₫').format(totalSpent)}',
+                                style: TextStyle(
+                                    fontSize: 22,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white)),
                           ],
                         ),
-                        const Icon(
-                          Icons.account_balance_wallet,
-                          size: 40,
-                          color: Colors.white,
-                        ),
+                        Icon(Icons.account_balance_wallet,
+                            size: 40, color: Colors.white),
                       ],
                     ),
                   ),
@@ -122,13 +121,15 @@ class _ListCategoryPageState extends State<ListCategoryPage> {
                 Expanded(
                   child: expenses.isEmpty
                       ? Center(child: Text('Không có chi tiêu nào.'))
-                      : ListView.builder(
-                          padding: EdgeInsets.all(16),
-                          itemCount: expenses.length,
-                          itemBuilder: (context, index) {
-                            final expense = expenses[index];
-                            return ExpenseCard(expense: expense);
-                          },
+                      : Center(
+                          child: ListView.builder(
+                            padding: EdgeInsets.all(16),
+                            itemCount: expenses.length,
+                            itemBuilder: (context, index) {
+                              final expense = expenses[index];
+                              return ExpenseCard(expense: expense);
+                            },
+                          ),
                         ),
                 ),
               ],
@@ -144,80 +145,70 @@ class ExpenseCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final category = expense['categoryId'] ?? {};
-    final categoryName = category['name'] ?? 'Không rõ';
-    final categoryIcon = category['icon'] ?? 'category';
+    final categoryIcon = expense['categoryId']['icon'] ?? 'category';
     final storeName = expense['storeName'] ?? 'Không rõ cửa hàng';
     final totalAmount = expense['totalAmount'] ?? 0;
+    final date = expense['date'] ?? '';
 
-    return Card(
-      color: Colors.white,
-      margin: EdgeInsets.symmetric(vertical: 8),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(15),
+    final formattedDate = DateFormat('dd/MM/yyyy').format(DateTime.parse(date));
+
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 6),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
-      elevation: 5,
-      child: Padding(
-        padding: EdgeInsets.all(16),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
+      child: ListTile(
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+        leading: CircleAvatar(
+          radius: 24,
+          backgroundColor: getCategoryColor(categoryIcon),
+          child: Icon(
+            _getIconData(categoryIcon),
+            color: Colors.white,
+            size: 24,
+          ),
+        ),
+        title: Text(
+          storeName,
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+          overflow: TextOverflow.ellipsis,
+          maxLines: 1,
+        ),
+        subtitle: Text(
+          'Ngày: $formattedDate',
+          style: const TextStyle(color: Colors.black54, fontSize: 14),
+        ),
+        trailing: Column(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            CircleAvatar(
-              radius: 30,
-              backgroundColor: getCategoryColor(categoryIcon),
-              child: Icon(
-                _getIconData(categoryIcon),
-                color: Colors.black,
-                size: 24,
-              ),
-            ),
-            SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Giới hạn độ dài tên cửa hàng và thêm dấu "..."
-                  Text(
-                    storeName,
-                    style: TextStyle(
-                      color: Colors.black,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 1, // Giới hạn tên cửa hàng trên 1 dòng
-                  ),
-                  SizedBox(height: 4),
-                  Text(
-                    'Danh mục: $categoryName',
-                    style: TextStyle(
-                      color: Colors.grey[600],
-                      fontSize: 14,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Text(
-                  '${NumberFormat.currency(locale: 'vi', symbol: '₫').format(totalAmount)}',
-                  style: TextStyle(
-                    color: Colors.redAccent,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [
+                    Color.fromARGB(255, 150, 208, 246),
+                    Color.fromARGB(255, 187, 181, 255)
+                  ],
                 ),
-                SizedBox(height: 4),
-                Text(
-                  expense['date'] ?? '',
-                  style: TextStyle(
-                    color: Colors.grey[500],
-                    fontSize: 14,
-                  ),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                '${NumberFormat.currency(locale: 'vi_VN', symbol: '₫').format(totalAmount)}',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
                 ),
-              ],
+              ),
             ),
           ],
         ),
@@ -245,9 +236,9 @@ class ExpenseCard extends StatelessWidget {
   Color getCategoryColor(String iconName) {
     switch (iconName) {
       case 'food':
-        return Colors.green.shade100;
+        return const Color.fromARGB(255, 163, 219, 235);
       case 'devices':
-        return Colors.blue.shade100;
+        return const Color.fromARGB(255, 215, 187, 251);
       case 'service':
         return Colors.yellow.shade100;
       case 'local_shipping':

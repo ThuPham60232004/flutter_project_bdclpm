@@ -7,6 +7,7 @@ import 'package:excel/excel.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter/services.dart';
 
 class PdfExcelPage extends StatefulWidget {
   @override
@@ -248,6 +249,10 @@ class _PdfExcelPageState extends State<PdfExcelPage> {
         : null;
   }
 
+  String formatDate(DateTime date) {
+    return DateFormat('dd/MM/yyyy').format(date); // Adjust format as required
+  }
+
   void _processExcelFile(String filePath) async {
     try {
       final excel = Excel.decodeBytes(await File(filePath).readAsBytesSync());
@@ -279,10 +284,20 @@ class _PdfExcelPageState extends State<PdfExcelPage> {
           categories.firstWhere((cat) => cat['name'] == _category)?['_id'];
       if (selectedCategoryId == null) throw Exception('Danh mục không hợp lệ');
 
-      final parsedDate =
-          DateTime.parse(_dateController.text); // Chuyển đổi từ chuỗi ISO 8601
-      final formattedDate =
-          parsedDate.toIso8601String(); // Hoặc định dạng tùy ý
+      // Check if the date is in ISO 8601 format (yyyy-MM-dd)
+      final isIso8601 =
+          RegExp(r'^\d{4}-\d{2}-\d{2}$').hasMatch(_dateController.text);
+
+      String formattedDate;
+
+      if (isIso8601) {
+        // If the date is already in ISO 8601 format, keep it as is
+        formattedDate = _dateController.text;
+      } else {
+        // If the date is in dd/MM/yyyy format, convert it to ISO 8601
+        final parsedDate = DateFormat('dd/MM/yyyy').parse(_dateController.text);
+        formattedDate = parsedDate.toIso8601String();
+      }
 
       final expenseData = {
         'userId': userId,
@@ -301,6 +316,7 @@ class _PdfExcelPageState extends State<PdfExcelPage> {
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         _showSnackBar('Lưu chi tiêu thành công!');
+        Navigator.of(context).popUntil((route) => route.isFirst);
       } else {
         throw Exception('Lỗi khi lưu chi tiêu: ${response.body}');
       }
@@ -352,20 +368,48 @@ class _PdfExcelPageState extends State<PdfExcelPage> {
               groupValue: groupValue,
               onChanged: null,
             ),
+            const SizedBox(height: 15),
             _buildTextField(
-                controller: _storeNameController, label: 'Tên cửa hàng'),
-            _buildTextField(
-                controller: _amountController,
-                label: 'Số tiền',
-                prefixText: 'VND ',
-                keyboardType: TextInputType.number),
-            TextField(
-              controller: _dateController,
-              decoration: const InputDecoration(
-                  labelText: 'Ngày', border: OutlineInputBorder()),
-              readOnly: true,
+              controller: _storeNameController,
+              label: 'Tên cửa hàng',
+              keyboardType: TextInputType.text,
             ),
+            const SizedBox(height: 15),
+            _buildTextField(
+              controller: _amountController,
+              label: 'Số tiền',
+              prefixText: 'VND ',
+              keyboardType: TextInputType.number,
+              inputFormatters: [
+                FilteringTextInputFormatter.digitsOnly,
+              ],
+            ),
+            const SizedBox(height: 15),
+            TextFormField(
+              controller: _dateController,
+              decoration: InputDecoration(
+                labelText: 'Ngày',
+                border: OutlineInputBorder(),
+              ),
+              readOnly: true,
+              onTap: () async {
+                DateTime? pickedDate = await showDatePicker(
+                  context: context,
+                  initialDate: DateTime.now(),
+                  firstDate: DateTime(2000),
+                  lastDate: DateTime(2101),
+                );
+                if (pickedDate != null) {
+                  setState(() {
+                    _dateController.text =
+                        DateFormat('dd/MM/yyyy').format(pickedDate);
+                  });
+                }
+              },
+            ),
+            const SizedBox(height: 15),
             _buildTextField(controller: _descriptionController, label: 'Mô tả'),
+            const SizedBox(height: 15),
             isLoadingCategories
                 ? const CircularProgressIndicator()
                 : DropdownButtonFormField<String>(
@@ -389,38 +433,40 @@ class _PdfExcelPageState extends State<PdfExcelPage> {
                       );
                     }).toList(),
                   ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 15),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 ElevatedButton(
-                    onPressed: _pickPdfOrExcelFile,
-                    child: const Text('Chọn Tệp',
-                        style: TextStyle(color: Colors.white)),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.black,
-                      padding: const EdgeInsets.symmetric(
-                          vertical: 13, horizontal: 35),
-                      shape: RoundedRectangleBorder(
-                        side: const BorderSide(color: Colors.black, width: 2),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    )),
+                  onPressed: _pickPdfOrExcelFile,
+                  child: const Text('Chọn Tệp',
+                      style: TextStyle(color: Colors.white)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.black,
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 13, horizontal: 35),
+                    shape: RoundedRectangleBorder(
+                      side: const BorderSide(color: Colors.black, width: 2),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                ),
                 ElevatedButton(
-                    onPressed: saveExpense,
-                    child: const Text('Lưu chi tiêu',
-                        style: TextStyle(color: Colors.black)),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(
-                          vertical: 13, horizontal: 35),
-                      shape: RoundedRectangleBorder(
-                        side: const BorderSide(color: Colors.black, width: 2),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    )),
+                  onPressed: saveExpense,
+                  child: const Text('Lưu chi tiêu',
+                      style: TextStyle(color: Colors.black)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 13, horizontal: 35),
+                    shape: RoundedRectangleBorder(
+                      side: const BorderSide(color: Colors.black, width: 2),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                ),
               ],
-            ),
+            )
           ],
         ),
       ),
@@ -430,20 +476,19 @@ class _PdfExcelPageState extends State<PdfExcelPage> {
   Widget _buildTextField({
     required TextEditingController controller,
     required String label,
-    String prefixText = '',
     TextInputType keyboardType = TextInputType.text,
+    List<TextInputFormatter>? inputFormatters,
+    String? prefixText,
   }) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: TextField(
-        controller: controller,
-        keyboardType: keyboardType,
-        decoration: InputDecoration(
-          labelText: label,
-          border: const OutlineInputBorder(),
-          prefixText: prefixText,
-        ),
+    return TextFormField(
+      controller: controller,
+      decoration: InputDecoration(
+        labelText: label,
+        border: OutlineInputBorder(),
+        prefixText: prefixText,
       ),
+      keyboardType: keyboardType,
+      inputFormatters: inputFormatters,
     );
   }
 }

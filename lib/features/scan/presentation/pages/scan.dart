@@ -132,10 +132,7 @@ class _ScanPageState extends State<ScanPage> {
 
   String extractDate(String text) {
     try {
-      // Cố gắng tìm ngày theo các định dạng khác nhau
       String normalizedText = removeDiacritics(text.toLowerCase());
-
-      // Tìm ngày theo định dạng "ngày dd tháng mm năm yyyy"
       RegExpMatch? primaryDateMatch =
           RegExp(r'ngày\s*(\d{1,2})\s*tháng\s*(\d{1,2})\s*năm\s*(\d{4})')
               .firstMatch(normalizedText);
@@ -145,8 +142,6 @@ class _ScanPageState extends State<ScanPage> {
         String year = primaryDateMatch.group(3) ?? "1970";
         return "${day.padLeft(2, '0')}/${month.padLeft(2, '0')}/$year";
       }
-
-      // Tìm ngày theo định dạng "dd-mm-yyyy"
       RegExpMatch? secondaryDateMatch =
           RegExp(r'(\d{2})-(\d{2})-(\d{4})').firstMatch(normalizedText);
       if (secondaryDateMatch != null) {
@@ -364,23 +359,6 @@ class _ScanPageState extends State<ScanPage> {
       _showSnackBar('Lỗi khi trích xuất văn bản. Vui lòng thử lại.');
     } finally {
       setState(() => loading = false);
-    }
-  }
-
-  Future<void> _copyJson() async {
-    if (_extractedText.isEmpty) {
-      _showSnackBar('Không có văn bản nào được trích xuất để sao chép.');
-      return;
-    }
-
-    try {
-      final jsonString = jsonEncode({"extractedText": _extractedText});
-      await Clipboard.setData(ClipboardData(text: jsonString));
-      _showSnackBar(
-          'Văn bản trích xuất đã được sao chép vào clipboard dưới dạng JSON.');
-    } catch (e) {
-      debugPrint('Lỗi khi sao chép JSON: $e');
-      _showSnackBar('Lỗi khi sao chép JSON.');
     }
   }
 
