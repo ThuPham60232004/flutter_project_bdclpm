@@ -1,156 +1,136 @@
-name: Flutter CI
+name: 🚀 Flutter CI/CD
 
 on:
   push:
     branches:
+      - develop
       - staging
+      - master/production
+
 jobs:
-  # B1: Test and analyze
+  # B1: Test và phân tích code
   test:
-    name: Test and analyze
+    name: ✅ Test and Analyze
     runs-on: ubuntu-22.04
 
     steps:
-      # B1_1: Run actions/checkout@v4
-      - name: Checkout repository
+      - name: 🛠 Checkout repository
         uses: actions/checkout@v4
 
-      # B1_2: Set up JDK 17
-      - name: Set up JDK 17
+      - name: 🔧 Set up JDK 17
         uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
           cache: 'gradle'
 
-      # B1_3: Setup Flutter
-      - name: Setup Flutter
+      - name: 🚀 Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.x'
           channel: 'stable'
           cache: true
 
-      # B1_4: Install dependencies
-      - name: Install dependencies
+      - name: 📦 Install dependencies
         run: flutter pub get
 
-      # B1_5: Verify formatting
-      - name: Verify formatting
+      - name: 🔍 Verify formatting
         run: dart format --output=none --set-exit-if-changed .
 
-      # B1_6: Run tests
-      # Ghi chú: Nếu cần chạy test, bỏ comment bước này
-      # - name: Run tests
+      # Có thể bật lại test nếu cần
+      # - name: 🧪 Run tests
       #   run: flutter test --coverage
 
-      # B1_7: Upload coverage to Codecov
-      - name: Upload coverage to Codecov
+      - name: 📊 Upload coverage to Codecov
         uses: codecov/codecov-action@v4
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
 
-      # B1_8: Notify Slack - Test completed
-      - name: Notify Slack - Test
+      - name: 📢 Notify Slack - Test Completed
         run: |
           curl -X POST -H 'Content-type: application/json' \
-          --data '{"text":"Test and analyze completed successfully!"}' ${{ secrets.SLACK_WEBHOOK_URL }}
+          --data '{"text":"✅ Test and analysis completed successfully!"}' ${{ secrets.SLACK_WEBHOOK_URL }}
 
   # B2: Build Android App
   build-android:
-    name: Build Android App
+    name: 📦 Build Android App
     needs: test
     runs-on: ubuntu-22.04
 
     steps:
-      # B2_1: Run actions/checkout@v4
-      - name: Checkout repository
+      - name: 🛠 Checkout repository
         uses: actions/checkout@v4
 
-      # B2_2: Set up JDK 17
-      - name: Set up JDK 17
+      - name: 🔧 Set up JDK 17
         uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
           cache: 'gradle'
 
-      # B2_3: Setup Flutter
-      - name: Setup Flutter
+      - name: 🚀 Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.x'
           channel: 'stable'
           cache: true
 
-      # B2_4: Install dependencies
-      - name: Install dependencies
+      - name: 📦 Install dependencies
         run: flutter pub get
 
-      # B2_5: Build debug APK
-      - name: Build debug APK
+      - name: 🏗️ Build debug APK
         run: flutter build apk --debug
 
-      # B2_6: Upload debug APK
-      - name: Upload debug APK
+      - name: 📤 Upload debug APK
         uses: actions/upload-artifact@v4
         with:
           name: app-debug
           path: build/app/outputs/flutter-apk/app-debug.apk
 
-      # B2_7: Notify Slack - Build completed
-      - name: Notify Slack - Build Completed
+      - name: 📢 Notify Slack - Build Completed
         run: |
           curl -X POST -H 'Content-type: application/json' \
-          --data '{"text":"Build completed successfully!"}' ${{ secrets.SLACK_WEBHOOK_URL }}
+          --data '{"text":"✅ Build completed successfully!"}' ${{ secrets.SLACK_WEBHOOK_URL }}
 
-  # B3: Run UI tests with Firebase Test Lab
+  # B3: Firebase Test Lab (CHỈ CHẠY TRÊN staging)
   firebase-test-lab:
-    name: Run UI tests with Firebase Test Lab
+    name: 🔍 Run UI Tests on Firebase Test Lab
     needs: build-android
     runs-on: ubuntu-22.04
-    if: github.event_name == 'push' || github.event_name == 'pull_request'
+    if: github.ref == 'refs/heads/staging'
     permissions:
       contents: 'read'
       id-token: 'write'
 
     steps:
-      # B3_1: Checkout repository
-      - name: Checkout repository
+      - name: 🛠 Checkout repository
         uses: actions/checkout@v4
 
-      # B3_2: Download app APK
-      - name: Download app APK
+      - name: 📥 Download APK
         uses: actions/download-artifact@v4
         with:
           name: app-debug
           path: app-debug
 
-      # B3_3: Authenticate to Google Cloud
-      - id: 'auth'
-        name: Authenticate to Google Cloud
+      - name: 🔑 Authenticate to Google Cloud
         uses: google-github-actions/auth@v2
         with:
           credentials_json: '${{ secrets.GCLOUD_AUTH }}'
 
-      # B3_4: Set up Cloud SDK
-      - name: Set up Cloud SDK
+      - name: ⚙️ Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
 
-      # B3_5: Install beta components
-      - name: Install beta components
+      - name: 📥 Install beta components
         run: |
           gcloud components install beta --quiet
           gcloud components update --quiet
 
-      # B3_6: Notify Slack - Run tests in Firebase Test Lab
-      - name: Notify Slack - Run tests in Firebase Test Lab
+      - name: 📢 Notify Slack - Running Firebase UI Tests
         run: |
           curl -X POST -H 'Content-type: application/json' \
-          --data '{"text":"Run tests in Firebase Test Lab"}' ${{ secrets.SLACK_WEBHOOK_URL }}
+          --data '{"text":"🧪 Running UI tests in Firebase Test Lab..."}' ${{ secrets.SLACK_WEBHOOK_URL }}
 
-      # B3_7: Run tests in Firebase Test Lab
-      - name: Run tests in Firebase Test Lab
+      - name: 🧪 Run tests in Firebase Test Lab
         run: |
           BUCKET_NAME="testflutter"
           TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
@@ -164,8 +144,7 @@ jobs:
             --robo-directives=text:emailTextField=eve.holt@reqres.in,text:passwordTextField=pistol \
             --quiet
 
-      # B3_8: Notify Slack - Tests Completed
-      - name: Notify Slack - Tests Completed
+      - name: 📢 Notify Slack - Firebase Test Completed
         run: |
           curl -X POST -H 'Content-type: application/json' \
-          --data '{"text":"UI tests in Firebase Test Lab completed successfully!"}' ${{ secrets.SLACK_WEBHOOK_URL }}
+          --data '{"text":"✅ Firebase Test completed for staging!"}' ${{ secrets.SLACK_WEBHOOK_URL }}
