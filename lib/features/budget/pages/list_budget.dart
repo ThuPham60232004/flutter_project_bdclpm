@@ -90,7 +90,7 @@ class BudgetCard extends StatelessWidget {
     final endBudgetDate = DateTime.parse(budget['endBudgetDate']);
 
     return GestureDetector(
-      onTap: onTap, 
+      onTap: onTap,
       child: Card(
         color: Colors.white,
         margin: const EdgeInsets.symmetric(vertical: 8),

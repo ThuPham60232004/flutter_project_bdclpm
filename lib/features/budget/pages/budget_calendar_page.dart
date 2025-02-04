@@ -88,7 +88,7 @@ class _BudgetCalendarPageState extends State<BudgetCalendarPage> {
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: SingleChildScrollView(
-          child: Column(
+            child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
@@ -125,10 +125,9 @@ class _BudgetCalendarPageState extends State<BudgetCalendarPage> {
             const SizedBox(height: 20),
             _buildCalendar(startBudgetDate, endBudgetDate),
             const SizedBox(height: 20),
-            _buildExpenseList(), 
+            _buildExpenseList(),
           ],
-        )
-        ),
+        )),
       ),
     );
   }
@@ -174,7 +173,7 @@ class _BudgetCalendarPageState extends State<BudgetCalendarPage> {
 
   Widget _buildExpenseList() {
     return SingleChildScrollView(
-      child: Column(
+        child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
@@ -198,7 +197,6 @@ class _BudgetCalendarPageState extends State<BudgetCalendarPage> {
           );
         }).toList(),
       ],
-    )
-    );
+    ));
   }
 }
