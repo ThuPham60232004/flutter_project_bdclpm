@@ -1,7 +1,7 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_project_bdclpm/features/auth/presentation/pages/login_page.dart';
-import 'package:flutter_project_bdclpm/features/home/presentation/pages/home_page.dart';
+import 'package:flutter_project_bdclpm/features/auth/pages/login_page.dart';
+import 'package:flutter_project_bdclpm/features/home/pages/home_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_project_bdclpm/firebase_options.dart';
 import 'core/routes/app_routes.dart';

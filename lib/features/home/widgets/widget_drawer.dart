@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_project_bdclpm/features/auth/presentation/controllers/auth_controller.dart';
+import 'package:flutter_project_bdclpm/features/auth/controllers/auth_controller.dart';
 import 'package:flutter_project_bdclpm/core/routes/route_names.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';

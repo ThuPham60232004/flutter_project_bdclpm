@@ -65,7 +65,4 @@ flutter:
     - assets/images/
     - assets/images/hinh1.png
     - assets/images/h2.png
-    - assets/icons/
-    - assets/key/
-    - assets/key/credentials.json
     - .env.dev
