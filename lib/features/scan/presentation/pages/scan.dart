@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter_project_bdclpm/features/scan/cloud/cloud.dart';
 import 'package:flutter_project_bdclpm/features/scan/presentation/pages/scan_expense_page.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class ScanPage extends StatefulWidget {
   final String? title;
@@ -33,8 +34,12 @@ class _ScanPageState extends State<ScanPage> {
 
   Future<void> _initializeApi() async {
     try {
-      final json = await rootBundle.loadString('assets/key/credentials.json');
-      api = CloudApi(json);
+      final credentialsJson = dotenv.env['GOOGLE_CREDENTIALS'];
+      if (credentialsJson == null || credentialsJson.isEmpty) {
+        throw Exception("Missing GOOGLE_CREDENTIALS in .env file");
+      }
+
+      api = CloudApi(credentialsJson);
     } catch (e) {
       debugPrint('Error loading credentials: $e');
     }
