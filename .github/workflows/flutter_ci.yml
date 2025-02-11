@@ -139,44 +139,9 @@ jobs:
           curl -X POST -H 'Content-type: application/json' \
           --data '{"text":"✅ Firebase Test completed for staging!"}' ${{ secrets.SLACK_WEBHOOK_URL }}
 
-  # B4: Deploy code từ develop -> staging nếu pass CI/CD
-  merge-to-staging:
-    name: 🔀 Merge develop → staging
-    needs: [test, build-android]
-    runs-on: ubuntu-22.04
-    if: github.ref == 'refs/heads/develop'
-
-    steps:
-      - name: 🔀 Create Pull Request to Staging
-        uses: peter-evans/create-pull-request@v5
-        with:
-          token: ${{ secrets.GITHUBTOKEN }}
-          base: staging
-          branch: develop
-          title: "🔀 Merge develop → staging"
-          body: "This PR is auto-generated after successful CI/CD execution."
-
-  # B5: Deploy code từ staging -> master/production nếu pass CI/CD
-  merge-to-master:
-    name: 🔀 Merge staging → master/production
-    needs: firebase-test-lab
-    runs-on: ubuntu-22.04
-    if: github.ref == 'refs/heads/staging'
-
-    steps:
-      - name: 🔀 Create Pull Request to Master
-        uses: peter-evans/create-pull-request@v5
-        with:
-          token: ${{ secrets.GITHUBTOKEN }}
-          base: master/production
-          branch: staging
-          title: "🔀 Merge staging → master/production"
-          body: "This PR is auto-generated after successful CI/CD execution."
-
   # B6: Deploy to Play Store
   deploy-play-store:
     name: 🚀 Deploy to Play Store
-    needs: merge-to-master
     runs-on: ubuntu-22.04
     if: github.ref == 'refs/heads/master/production' && github.event_name == 'push'
 
