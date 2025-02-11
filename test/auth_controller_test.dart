@@ -48,11 +48,14 @@ void main() {
       httpClient: mockHttpClient,
       prefs: sharedPreferences,
     );
-    when(mockGoogleSignIn.signIn()).thenAnswer((_) async => mockGoogleSignInAccount);
-    when(mockGoogleSignInAccount.authentication).thenAnswer((_) async => mockGoogleSignInAuth);
+    when(mockGoogleSignIn.signIn())
+        .thenAnswer((_) async => mockGoogleSignInAccount);
+    when(mockGoogleSignInAccount.authentication)
+        .thenAnswer((_) async => mockGoogleSignInAuth);
     when(mockGoogleSignInAuth.accessToken).thenReturn("mock_access_token");
     when(mockGoogleSignInAuth.idToken).thenReturn("mock_id_token");
-    when(mockFirebaseAuth.signInWithCredential(any)).thenAnswer((_) async => mockUserCredential);
+    when(mockFirebaseAuth.signInWithCredential(any))
+        .thenAnswer((_) async => mockUserCredential);
     when(mockUserCredential.user).thenReturn(mockUser);
     when(mockUser.getIdToken()).thenAnswer((_) async => "mock_firebase_token");
     when(mockHttpClient.post(
@@ -60,14 +63,14 @@ void main() {
       headers: anyNamed('headers'),
       body: anyNamed('body'),
     )).thenAnswer((_) async => http.Response(
-      jsonEncode({
-        "_id": "mock_user_id",
-        "firebaseId": "mock_firebase_id",
-        "username": "mock_username",
-        "email": "mock_email"
-      }),
-      200,
-    ));
+          jsonEncode({
+            "_id": "mock_user_id",
+            "firebaseId": "mock_firebase_id",
+            "username": "mock_username",
+            "email": "mock_email"
+          }),
+          200,
+        ));
     when(mockGoogleSignIn.signOut()).thenAnswer((_) async => null);
     when(mockFirebaseAuth.signOut()).thenAnswer((_) async => null);
   });
@@ -85,7 +88,8 @@ void main() {
   });
 
   test("Đăng nhập thất bại khi Firebase xác thực lỗi", () async {
-    when(mockFirebaseAuth.signInWithCredential(any)).thenThrow(FirebaseAuthException(code: "error"));
+    when(mockFirebaseAuth.signInWithCredential(any))
+        .thenThrow(FirebaseAuthException(code: "error"));
     final user = await authController.loginWithGoogle();
     expect(user, isNull);
   });
