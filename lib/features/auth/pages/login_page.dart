@@ -1,11 +1,11 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_project_bdclpm/features/auth/presentation/controllers/auth_controller.dart';
+import 'package:flutter_project_bdclpm/features/auth/controllers/auth_controller.dart';
 import 'package:iconly/iconly.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
-import '../../../home/presentation/pages/home_page.dart';
+import '../../home/pages/home_page.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});

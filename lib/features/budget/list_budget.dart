@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
-import 'package:flutter_project_bdclpm/features/budget/pages/budget_calendar_page.dart';
+import 'package:flutter_project_bdclpm/features/budget/budget_calendar_page.dart';
 
 class BudgetListPage extends StatefulWidget {
   @override
