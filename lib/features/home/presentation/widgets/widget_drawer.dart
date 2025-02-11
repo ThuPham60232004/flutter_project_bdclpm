@@ -30,7 +30,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
         firebaseAuth: FirebaseAuth.instance,
         googleSignIn: GoogleSignIn(),
         httpClient: http.Client(),
-        prefs: prefs, 
+        prefs: prefs,
       );
       isLoading = false;
     });
@@ -73,8 +73,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
 
         return Container(
           padding: const EdgeInsets.symmetric(vertical: 30),
-          decoration: const BoxDecoration(
-          ),
+          decoration: const BoxDecoration(),
           child: Column(
             children: [
               CircleAvatar(
@@ -106,20 +105,57 @@ class _CustomDrawerState extends State<CustomDrawer> {
 
   List<Widget> _buildMenuItems(BuildContext context) {
     final menuItems = [
-      {'icon': Icons.add_circle_outline, 'title': 'Thêm chi tiêu', 'route': RouteNames.type},
-      {'icon': Icons.history, 'title': 'LS chi tiêu', 'route': RouteNames.history},
-      {'icon': Icons.account_balance_wallet, 'title': 'Thiết lập ngân sách', 'route': RouteNames.addbudget},
-      {'icon': Icons.category, 'title': 'Thiết lập category', 'route': RouteNames.categories},
-      {'icon': Icons.list_alt, 'title': 'Danh sách ngân sách', 'route': RouteNames.listbudgets},
-      {'icon': Icons.pie_chart, 'title': 'Xem biểu đồ chi tiêu', 'route': RouteNames.categorywise},
-      {'icon': Icons.chat_sharp, 'title': 'Thu nhập', 'route': RouteNames.income},
-      {'icon': Icons.history_toggle_off, 'title': 'LS thu nhập', 'route': RouteNames.historyincome},
-      {'icon': Icons.spatial_tracking_sharp, 'title': 'Tổng thu nhập', 'route': RouteNames.echarts},
+      {
+        'icon': Icons.add_circle_outline,
+        'title': 'Thêm chi tiêu',
+        'route': RouteNames.type
+      },
+      {
+        'icon': Icons.history,
+        'title': 'LS chi tiêu',
+        'route': RouteNames.history
+      },
+      {
+        'icon': Icons.account_balance_wallet,
+        'title': 'Thiết lập ngân sách',
+        'route': RouteNames.addbudget
+      },
+      {
+        'icon': Icons.category,
+        'title': 'Thiết lập category',
+        'route': RouteNames.categories
+      },
+      {
+        'icon': Icons.list_alt,
+        'title': 'Danh sách ngân sách',
+        'route': RouteNames.listbudgets
+      },
+      {
+        'icon': Icons.pie_chart,
+        'title': 'Xem biểu đồ chi tiêu',
+        'route': RouteNames.categorywise
+      },
+      {
+        'icon': Icons.chat_sharp,
+        'title': 'Thu nhập',
+        'route': RouteNames.income
+      },
+      {
+        'icon': Icons.history_toggle_off,
+        'title': 'LS thu nhập',
+        'route': RouteNames.historyincome
+      },
+      {
+        'icon': Icons.spatial_tracking_sharp,
+        'title': 'Tổng thu nhập',
+        'route': RouteNames.echarts
+      },
     ];
 
     return menuItems.map((item) {
       return ListTile(
-        leading: Icon(item['icon'] as IconData, color: const Color.fromARGB(255, 0, 0, 0)),
+        leading: Icon(item['icon'] as IconData,
+            color: const Color.fromARGB(255, 0, 0, 0)),
         title: Text(
           item['title'] as String,
           style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),

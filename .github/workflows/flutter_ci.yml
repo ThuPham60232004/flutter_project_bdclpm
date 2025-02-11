@@ -37,9 +37,8 @@ jobs:
       - name: 🔍 Verify formatting
         run: dart format --output=none --set-exit-if-changed .
 
-      # Có thể bật lại test nếu cần
-      # - name: 🧪 Run tests
-      #   run: flutter test --coverage
+      - name: 🧪 Run tests
+        run: flutter test --coverage
 
       - name: 📊 Upload coverage to Codecov
         uses: codecov/codecov-action@v4
