@@ -150,7 +150,7 @@ jobs:
       - name: 🔀 Create Pull Request to Staging
         uses: peter-evans/create-pull-request@v5
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.GITHUBTOKEN }}
           base: staging
           branch: develop
           title: "🔀 Merge develop → staging"
@@ -167,7 +167,7 @@ jobs:
       - name: 🔀 Create Pull Request to Master
         uses: peter-evans/create-pull-request@v5
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.GITHUBTOKEN }}
           base: master/production
           branch: staging
           title: "🔀 Merge staging → master/production"
