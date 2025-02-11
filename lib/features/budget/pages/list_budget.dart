@@ -59,7 +59,6 @@ class _BudgetListPageState extends State<BudgetListPage> {
                     return BudgetCard(
                       budget: budget,
                       onTap: () {
-                        // Khi bấm vào ngân sách, điều hướng đến trang lịch ngân sách
                         Navigator.push(
                           context,
                           MaterialPageRoute(
@@ -91,7 +90,7 @@ class BudgetCard extends StatelessWidget {
     final endBudgetDate = DateTime.parse(budget['endBudgetDate']);
 
     return GestureDetector(
-      onTap: onTap, // Khi người dùng bấm vào ngân sách
+      onTap: onTap,
       child: Card(
         color: Colors.white,
         margin: const EdgeInsets.symmetric(vertical: 8),

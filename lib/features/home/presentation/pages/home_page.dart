@@ -199,22 +199,22 @@ class _HomePageState extends State<HomePage> {
       decoration: BoxDecoration(
         gradient: const LinearGradient(
           colors: [
-            Color.fromARGB(255, 234, 182, 182),
-            Color.fromARGB(255, 122, 180, 216)
+            Color.fromARGB(255, 250, 186, 211),
+            Color.fromARGB(255, 236, 254, 211),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.circular(15),
+        borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.shade500,
-            blurRadius: 6,
-            offset: const Offset(2, 3),
+            color: Colors.black.withOpacity(0.2),
+            blurRadius: 8,
+            offset: const Offset(2, 4),
           ),
         ],
       ),
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.symmetric(vertical: 25, horizontal: 20),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -222,26 +222,36 @@ class _HomePageState extends State<HomePage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text(
-                'Tổng chi tiêu',
+                'Tổng chi tiêu gần đây',
                 style: TextStyle(
                   fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white70,
                 ),
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 8),
               Text(
                 '-${NumberFormat.currency(locale: 'vi_VN', symbol: '₫').format(totalSpent)}',
                 style: const TextStyle(
-                  fontSize: 22,
+                  fontSize: 24,
                   fontWeight: FontWeight.bold,
                   color: Colors.white,
                 ),
               ),
             ],
           ),
-          const Icon(Icons.account_balance_wallet,
-              size: 50, color: Colors.white),
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.2),
+              shape: BoxShape.circle,
+            ),
+            padding: const EdgeInsets.all(12),
+            child: const Icon(
+              Icons.account_balance_wallet,
+              size: 50,
+              color: Colors.white,
+            ),
+          ),
         ],
       ),
     );
@@ -253,23 +263,24 @@ class _HomePageState extends State<HomePage> {
       children: [
         const Text(
           'Chi tiêu theo danh mục',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          style: TextStyle(
+              fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black87),
         ),
         const SizedBox(height: 10),
         Container(
-          height: 300,
+          height: 280,
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(20),
             boxShadow: [
               BoxShadow(
-                color: Colors.grey.shade300,
-                blurRadius: 4,
-                offset: const Offset(0, 2),
+                color: Colors.black.withOpacity(0.1),
+                blurRadius: 10,
+                offset: const Offset(0, 5),
               ),
             ],
             border: Border.all(
-              color: Colors.black, // Viền đen bên ngoài
+              color: Colors.black,
               width: 2,
             ),
           ),
@@ -277,31 +288,37 @@ class _HomePageState extends State<HomePage> {
           child: PieChart(
             PieChartData(
               sections: _buildChartSections(),
-              centerSpaceRadius: 50,
-              sectionsSpace: 2,
+              centerSpaceRadius: 60,
+              sectionsSpace: 3,
               borderData: FlBorderData(show: false),
             ),
           ),
         ),
         const SizedBox(height: 20),
-        // Chú thích danh mục
         Wrap(
-          spacing: 10,
-          children: expensesData.map((expense) {
-            int index = expensesData.indexOf(expense);
+          spacing: 12,
+          runSpacing: 6,
+          children: expensesData.asMap().entries.map((entry) {
+            int index = entry.key;
+            var expense = entry.value;
             return Row(
               mainAxisSize: MainAxisSize.min,
               children: [
                 Container(
                   width: 16,
                   height: 16,
-                  color: Colors.primaries[
-                      index % Colors.primaries.length], // Màu sắc tương ứng
+                  decoration: BoxDecoration(
+                    color: Colors.primaries[index % Colors.primaries.length],
+                    borderRadius: BorderRadius.circular(4),
+                  ),
                 ),
-                const SizedBox(width: 5),
+                const SizedBox(width: 6),
                 Text(
-                  expense['categoryName'], // Tên danh mục
-                  style: const TextStyle(fontSize: 14),
+                  expense['categoryName'],
+                  style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.black87),
                 ),
               ],
             );
@@ -317,7 +334,8 @@ class _HomePageState extends State<HomePage> {
       children: [
         const Text(
           'Giao dịch gần đây',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          style: TextStyle(
+              fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black87),
         ),
         const SizedBox(height: 10),
         ListView.builder(
@@ -329,23 +347,41 @@ class _HomePageState extends State<HomePage> {
             final formattedDate = DateFormat('dd/MM/yyyy')
                 .format(DateTime.parse(order['createdAt']));
 
-            return Card(
-              margin: const EdgeInsets.symmetric(vertical: 8),
+            return Container(
+              margin: const EdgeInsets.symmetric(vertical: 6),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
               child: ListTile(
+                contentPadding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 leading: CircleAvatar(
+                  radius: 24,
                   backgroundColor:
                       getCategoryColor(order['categoryId']['icon'] ?? ''),
                   child: Icon(
-                      getIconFromString(order['categoryId']['icon'] ?? '')),
+                    getIconFromString(order['categoryId']['icon'] ?? ''),
+                    color: Colors.blueAccent,
+                  ),
                 ),
                 title: Text(
                   order['storeName'],
-                  style: const TextStyle(fontWeight: FontWeight.bold),
+                  style: const TextStyle(
+                      fontWeight: FontWeight.bold, fontSize: 16),
                   overflow: TextOverflow.ellipsis,
                   maxLines: 1,
                 ),
                 subtitle: Text(
                   order['description'] ?? '',
+                  style: const TextStyle(color: Colors.black54, fontSize: 14),
                   overflow: TextOverflow.ellipsis,
                   maxLines: 1,
                 ),
@@ -353,14 +389,27 @@ class _HomePageState extends State<HomePage> {
                   crossAxisAlignment: CrossAxisAlignment.end,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text(
-                      '${NumberFormat.currency(locale: 'vi_VN', symbol: '₫').format(order['totalAmount'])}',
-                      style: const TextStyle(
-                        color: Color.fromARGB(255, 181, 41, 41),
-                        fontWeight: FontWeight.bold,
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFFff7e5f), Color(0xFFfeb47b)],
+                        ),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        '${NumberFormat.currency(locale: 'vi_VN', symbol: '₫').format(order['totalAmount'])}',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
-                    Text(formattedDate, style: const TextStyle(fontSize: 12)),
+                    const SizedBox(height: 4),
+                    Text(formattedDate,
+                        style: const TextStyle(
+                            fontSize: 12, color: Colors.black54)),
                   ],
                 ),
               ),

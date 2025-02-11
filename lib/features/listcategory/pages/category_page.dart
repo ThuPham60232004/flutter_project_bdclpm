@@ -43,39 +43,42 @@ class _CategoryPageState extends State<CategoryPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Danh mục'),
-        backgroundColor: Colors.white,
+        backgroundColor: const Color.fromARGB(255, 255, 255, 255),
+        elevation: 6,
       ),
       body: isLoading
           ? Center(child: CircularProgressIndicator())
-          : GridView.builder(
-              padding: EdgeInsets.all(16),
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                mainAxisSpacing: 16,
-                crossAxisSpacing: 16,
-                childAspectRatio: 1,
-              ),
-              itemCount: categories.length,
-              itemBuilder: (context, index) {
-                final category = categories[index];
-                return GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => ListCategoryPage(
-                          categoryId: category['_id'],
-                          categoryName: category['name'],
+          : Padding(
+              padding: const EdgeInsets.all(16),
+              child: GridView.builder(
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  mainAxisSpacing: 16,
+                  crossAxisSpacing: 16,
+                  childAspectRatio: 1.1,
+                ),
+                itemCount: categories.length,
+                itemBuilder: (context, index) {
+                  final category = categories[index];
+                  return GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ListCategoryPage(
+                            categoryId: category['_id'],
+                            categoryName: category['name'],
+                          ),
                         ),
-                      ),
-                    );
-                  },
-                  child: CategoryTile(
-                    name: category['name'],
-                    iconName: category['icon'],
-                  ),
-                );
-              },
+                      );
+                    },
+                    child: CategoryTile(
+                      name: category['name'],
+                      iconName: category['icon'],
+                    ),
+                  );
+                },
+              ),
             ),
     );
   }
@@ -91,13 +94,20 @@ class CategoryTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        gradient: LinearGradient(
+          colors: [
+            const Color.fromARGB(255, 160, 195, 255),
+            const Color.fromARGB(255, 178, 127, 255)
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
             color: Colors.black12,
-            blurRadius: 4,
-            offset: Offset(0, 2),
+            blurRadius: 8,
+            offset: Offset(0, 4),
           ),
         ],
       ),
@@ -106,13 +116,17 @@ class CategoryTile extends StatelessWidget {
         children: [
           Icon(
             getIconFromString(iconName),
-            size: 40,
-            color: Colors.black,
+            size: 45,
+            color: Colors.white,
           ),
           SizedBox(height: 8),
           Text(
             name,
-            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
             textAlign: TextAlign.center,
           ),
         ],

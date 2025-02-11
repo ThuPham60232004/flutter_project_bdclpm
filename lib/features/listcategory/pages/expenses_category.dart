@@ -157,7 +157,7 @@ class _CategoryWiseExpensesPageState extends State<CategoryWiseExpensesPage> {
                             ),
                             const SizedBox(height: 10),
                             ListView.builder(
-                              shrinkWrap: true, // Đảm bảo danh sách không tràn
+                              shrinkWrap: true,
                               physics: const NeverScrollableScrollPhysics(),
                               itemCount: expensesData.length,
                               itemBuilder: (context, index) {
