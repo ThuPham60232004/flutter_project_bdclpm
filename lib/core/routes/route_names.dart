@@ -10,4 +10,7 @@ class RouteNames {
   static const String categories = '/categories';
   static const String listbudgets = '/listbudgets';
   static const String categorywise = '/categorywise';
+  static const String income = '/income';
+  static const String historyincome = '/historyincome';
+  static const String echarts = '/echarts';
 }

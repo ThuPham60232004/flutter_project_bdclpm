@@ -6,279 +6,213 @@ import 'package:intl/intl.dart';
 import 'package:flutter/services.dart';
 
 class ScanExpensePage extends StatefulWidget {
+  final String storeName;
+  final double totalAmount;
+  final String description;
+  final String date;
+  final String categoryId;
+  final String categoryname;
+  const ScanExpensePage({
+    Key? key,
+    required this.storeName,
+    required this.totalAmount,
+    required this.description,
+    required this.date,
+    required this.categoryId,
+    required this.categoryname,
+  }) : super(key: key);
+
   @override
   _ScanExpensePageState createState() => _ScanExpensePageState();
 }
 
 class _ScanExpensePageState extends State<ScanExpensePage> {
-  String? selectedCategory;
-  String? imageUrl;
-  bool includeVat = false;
-  final TextEditingController storeNameController = TextEditingController();
-  final TextEditingController totalAmountController = TextEditingController();
+  String? userId;
+  int selectedMethod = 1;
   final TextEditingController dateController = TextEditingController();
-  final TextEditingController descriptionController = TextEditingController();
-  String groupValue = 'invoice';
-  List<dynamic> categories = [];
-  bool isLoadingCategories = true;
+  final TextEditingController amountController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    fetchCategories();
-    Future.delayed(Duration.zero, () {
-      final arguments =
-          ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
-      if (arguments != null) {
-        storeNameController.text = arguments['storeName'] ?? '';
-        totalAmountController.text = arguments['totalAmount']?.toString() ?? '';
-        dateController.text = arguments['date'] ?? '';
-        selectedCategory = arguments['category'];
-        imageUrl = arguments['imageUrl'];
-        if (selectedCategory != null) {
-          updateDescription(selectedCategory!);
-        }
-      }
+    _loadUserId();
+    dateController.text = widget.date;
+    amountController.text = _formatCurrency(widget.totalAmount);
+  }
+
+  String _convertToIsoDate(String date) {
+    try {
+      DateTime parsedDate = DateFormat("dd/MM/yyyy").parse(date);
+      return DateFormat("yyyy-MM-dd").format(parsedDate);
+    } catch (e) {
+      print("Error parsing date: $e");
+      return date;
+    }
+  }
+
+  Future<void> _loadUserId() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      userId = prefs.getString('userId');
     });
   }
 
-  Future<void> fetchCategories() async {
-    try {
-      final response = await http
-          .get(Uri.parse('https://backend-bdclpm.onrender.com/api/categories'));
-      if (response.statusCode == 200) {
-        setState(() {
-          categories = json.decode(response.body);
-          isLoadingCategories = false;
-        });
-      } else {
-        throw Exception('Failed to load categories');
-      }
-    } catch (e) {
-      debugPrint('Error fetching categories: $e');
-      setState(() {
-        isLoadingCategories = false;
-      });
-    }
-  }
+  void _createExpense() async {
+    if (userId == null) return;
 
-  void updateDescription(String categoryName) {
-    final category = categories.firstWhere(
-      (category) => category['name'] == categoryName,
-      orElse: () => {},
+    final expenseData = {
+      "userId": userId,
+      "storeName": widget.storeName,
+      "totalAmount": widget.totalAmount,
+      "description": widget.description,
+      "date": _convertToIsoDate(dateController.text),
+      "categoryId": widget.categoryId,
+    };
+
+    final response = await http.post(
+      Uri.parse("https://backend-bdclpm.onrender.com/api/expenses"),
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode(expenseData),
     );
-    if (category.isNotEmpty && category.containsKey('description')) {
-      descriptionController.text = category['description'] ?? '';
-    }
-  }
 
-  @override
-  void dispose() {
-    storeNameController.dispose();
-    totalAmountController.dispose();
-    dateController.dispose();
-    descriptionController.dispose();
-    super.dispose();
-  }
-
-  Future<void> saveExpense() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final userId = prefs.getString('userId');
-
-      if (userId == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Không tìm thấy thông tin người dùng!')),
-        );
-        return;
-      }
-
-      final selectedCategoryId = categories.firstWhere(
-        (category) => category['name'] == selectedCategory,
-        orElse: () => null,
-      )?['_id'];
-
-      if (selectedCategoryId == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Vui lòng chọn danh mục hợp lệ!')),
-        );
-        return;
-      }
-
-      DateTime? parsedDate;
-      try {
-        parsedDate = DateFormat('dd/MM/yyyy').parseStrict(dateController.text);
-      } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Ngày không hợp lệ, vui lòng chọn lại!')),
-        );
-        return;
-      }
-
-      final formattedDate = parsedDate.toIso8601String();
-
-      final expenseData = {
-        'userId': userId,
-        'storeName': storeNameController.text.trim(),
-        'totalAmount': double.tryParse(totalAmountController.text) ?? 0,
-        'date': formattedDate,
-        'description': descriptionController.text.trim(),
-        'categoryId': selectedCategoryId,
-      };
-
-      final response = await http.post(
-        Uri.parse('https://backend-bdclpm.onrender.com/api/expenses'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode(expenseData),
-      );
-
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Lưu chi tiêu thành công!')),
-        );
-        Navigator.of(context).popUntil((route) => route.isFirst);
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Lỗi khi lưu chi tiêu: ${response.body}')),
-        );
-      }
-    } catch (e) {
+    if (response.statusCode == 201) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Đã xảy ra lỗi: $e')),
+        SnackBar(content: Text("Chi tiêu đã được tạo thành công")),
+      );
+      Navigator.pop(context);
+    } else {
+      print("Error: ${response.statusCode}");
+      print("Response body: ${response.body}");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Không thể tạo chi tiêu. Vui lòng thử lại!")),
       );
     }
+  }
+
+  String _formatCurrency(double amount) {
+    final NumberFormat formatter = NumberFormat.simpleCurrency(locale: 'vi_VN');
+    return formatter.format(amount);
+  }
+
+  Widget _buildTextField(String label, String value,
+      {bool isDropdown = false}) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: TextFormField(
+        controller: isDropdown ? null : TextEditingController(text: value),
+        readOnly: isDropdown ? true : false,
+        decoration: InputDecoration(
+          labelText: label,
+          filled: true,
+          fillColor: Colors.grey[100],
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide.none,
+          ),
+          suffixIcon: isDropdown ? Icon(Icons.arrow_drop_down) : null,
+        ),
+        inputFormatters: label == "Ngày"
+            ? [
+                FilteringTextInputFormatter.digitsOnly,
+                LengthLimitingTextInputFormatter(10),
+                DateInputFormatter(),
+              ]
+            : label == "Số tiền"
+                ? [
+                    FilteringTextInputFormatter.digitsOnly,
+                    LengthLimitingTextInputFormatter(15),
+                  ]
+                : [],
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Thêm chi tiêu'),
+        title: const Text("Thêm chi tiêu",
+            style: TextStyle(fontWeight: FontWeight.bold)),
+        leading: BackButton(),
         backgroundColor: Colors.white,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              RadioListTile(
-                title: Text('Nhập thủ công'),
-                value: 'manual',
-                groupValue: groupValue,
-                onChanged: null,
-              ),
-              RadioListTile(
-                title: Text('Quét hóa đơn'),
-                value: 'invoice',
-                groupValue: groupValue,
-                onChanged: (value) {
-                  setState(() {
-                    groupValue = value!;
-                  });
-                },
-              ),
-              RadioListTile(
-                title: Text('Quét PDF/Excel'),
-                value: 'pdf',
-                groupValue: groupValue,
-                onChanged: null,
-              ),
-              RadioListTile(
-                title: Text('Nhận dạng giọng nói'),
-                value: 'voice',
-                groupValue: groupValue,
-                onChanged: null,
-              ),
-              SizedBox(height: 16),
-              TextField(
-                controller: storeNameController,
-                decoration: InputDecoration(
-                  labelText: 'Tên cửa hàng',
-                  border: OutlineInputBorder(),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text("Bạn muốn nhập chi tiêu như thế nào?",
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+            RadioListTile(
+              value: 0,
+              groupValue: selectedMethod,
+              onChanged: null,
+              title: Text("Nhập thủ công"),
+            ),
+            RadioListTile(
+              value: 1,
+              groupValue: selectedMethod,
+              onChanged: (value) =>
+                  setState(() => selectedMethod = value as int),
+              title: Text("Quét hóa đơn"),
+            ),
+            RadioListTile(
+              value: 2,
+              groupValue: selectedMethod,
+              onChanged: null,
+              title: Text("Quét pdf/excel"),
+            ),
+            RadioListTile(
+              value: 3,
+              groupValue: selectedMethod,
+              onChanged: null,
+              title: Text("Nhận dạng giọng nói"),
+            ),
+            const SizedBox(height: 12),
+            _buildTextField("Tên cửa hàng", widget.storeName),
+            _buildTextField("Số tiền", _formatCurrency(widget.totalAmount),
+                isDropdown: false),
+            _buildTextField("Ngày", widget.date),
+            _buildTextField("Mô tả", widget.description),
+            _buildTextField("Danh mục", widget.categoryname),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: _createExpense,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color.fromARGB(255, 0, 0, 0),
+                minimumSize: Size(double.infinity, 50),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
                 ),
               ),
-              SizedBox(height: 16),
-              TextField(
-                controller: totalAmountController,
-                decoration: InputDecoration(
-                  labelText: 'Số tiền',
-                  prefixText: 'VND ',
-                  border: OutlineInputBorder(),
-                ),
-                keyboardType: TextInputType.number,
-                inputFormatters: [
-                  FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
-                ],
-              ),
-              SizedBox(height: 16),
-              TextField(
-                controller: dateController,
-                readOnly: true,
-                decoration: InputDecoration(
-                  labelText: 'Ngày',
-                  border: OutlineInputBorder(),
-                ),
-                onTap: () async {
-                  DateTime? selectedDate = await showDatePicker(
-                    context: context,
-                    initialDate: DateTime.now(),
-                    firstDate: DateTime(2000),
-                    lastDate: DateTime(2101),
-                  );
-                  if (selectedDate != null) {
-                    dateController.text =
-                        DateFormat('dd/MM/yyyy').format(selectedDate);
-                  }
-                },
-              ),
-              SizedBox(height: 16),
-              isLoadingCategories
-                  ? CircularProgressIndicator()
-                  : DropdownButtonFormField<String>(
-                      decoration: InputDecoration(
-                        labelText: 'Danh mục',
-                        border: OutlineInputBorder(),
-                      ),
-                      value: selectedCategory,
-                      items:
-                          categories.map<DropdownMenuItem<String>>((category) {
-                        return DropdownMenuItem(
-                          value: category['name'],
-                          child: Text(category['name']),
-                        );
-                      }).toList(),
-                      onChanged: (value) {
-                        setState(() {
-                          selectedCategory = value;
-                          updateDescription(value!);
-                        });
-                      },
-                    ),
-              SizedBox(height: 16),
-              TextField(
-                controller: descriptionController,
-                decoration: InputDecoration(
-                  labelText: 'Mô tả',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: saveExpense,
-                child: Text('Lưu chi tiêu'),
-                style: ElevatedButton.styleFrom(
-                  minimumSize: Size(double.infinity, 50),
-                ),
-              ),
-            ],
-          ),
+              child: const Text("Lưu chi tiêu",
+                  style: TextStyle(
+                      color: Color.fromARGB(255, 255, 255, 255), fontSize: 16)),
+            ),
+          ],
         ),
       ),
+    );
+  }
+}
+
+class DateInputFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(
+      TextEditingValue oldValue, TextEditingValue newValue) {
+    String newText = newValue.text;
+
+    if (newText.length > 2 && newText[2] != '/') {
+      newText = newText.substring(0, 2) + '/' + newText.substring(2);
+    }
+
+    if (newText.length > 5 && newText[5] != '/') {
+      newText = newText.substring(0, 5) + '/' + newText.substring(5);
+    }
+
+    return TextEditingValue(
+      text: newText,
+      selection: TextSelection.collapsed(offset: newText.length),
     );
   }
 }
