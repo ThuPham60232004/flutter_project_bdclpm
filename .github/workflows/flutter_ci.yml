@@ -97,9 +97,6 @@ jobs:
     needs: build-android
     runs-on: ubuntu-22.04
     if: github.ref == 'refs/heads/staging'
-    permissions:
-      contents: 'read'
-      id-token: 'write'
 
     steps:
       - name: 🛠 Checkout repository
@@ -124,11 +121,6 @@ jobs:
           gcloud components install beta --quiet
           gcloud components update --quiet
 
-      - name: 📢 Notify Slack - Running Firebase UI Tests
-        run: |
-          curl -X POST -H 'Content-type: application/json' \
-          --data '{"text":"🧪 Running UI tests in Firebase Test Lab..."}' ${{ secrets.SLACK_WEBHOOK_URL }}
-
       - name: 🧪 Run tests in Firebase Test Lab
         run: |
           BUCKET_NAME="testflutter"
@@ -140,17 +132,51 @@ jobs:
             --timeout 300s \
             --results-bucket=gs://$BUCKET_NAME \
             --results-dir=results-$TIMESTAMP \
-            --robo-directives=text:emailTextField=eve.holt@reqres.in,text:passwordTextField=pistol \
             --quiet
 
       - name: 📢 Notify Slack - Firebase Test Completed
         run: |
           curl -X POST -H 'Content-type: application/json' \
           --data '{"text":"✅ Firebase Test completed for staging!"}' ${{ secrets.SLACK_WEBHOOK_URL }}
-  # B5: Deploy to Play Store
+
+  # B4: Deploy code từ develop -> staging nếu pass CI/CD
+  merge-to-staging:
+    name: 🔀 Merge develop → staging
+    needs: [test, build-android]
+    runs-on: ubuntu-22.04
+    if: github.ref == 'refs/heads/develop'
+
+    steps:
+      - name: 🔀 Create Pull Request to Staging
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          base: staging
+          branch: develop
+          title: "🔀 Merge develop → staging"
+          body: "This PR is auto-generated after successful CI/CD execution."
+
+  # B5: Deploy code từ staging -> master/production nếu pass CI/CD
+  merge-to-master:
+    name: 🔀 Merge staging → master/production
+    needs: firebase-test-lab
+    runs-on: ubuntu-22.04
+    if: github.ref == 'refs/heads/staging'
+
+    steps:
+      - name: 🔀 Create Pull Request to Master
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          base: master/production
+          branch: staging
+          title: "🔀 Merge staging → master/production"
+          body: "This PR is auto-generated after successful CI/CD execution."
+
+  # B6: Deploy to Play Store
   deploy-play-store:
     name: 🚀 Deploy to Play Store
-    needs: [test, build-android, firebase-test-lab]
+    needs: merge-to-master
     runs-on: ubuntu-22.04
     if: github.ref == 'refs/heads/master/production' && github.event_name == 'push'
 
@@ -174,13 +200,6 @@ jobs:
       - name: 🔑 Decode Keystore
         run: |
           echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > android/app/keystore.jks
-
-      - name: 📝 Create key.properties
-        run: |
-          echo "storeFile=production-key.jks" > android/key.properties
-          echo "storePassword=${{ secrets.KEYSTORE_PASSWORD }}" >> android/key.properties
-          echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> android/key.properties
-          echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> android/key.properties
 
       - name: 🏗️ Build Release AAB
         run: |
