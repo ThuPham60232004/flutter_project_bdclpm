@@ -5,89 +5,67 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthController {
-  static User? user = FirebaseAuth.instance.currentUser;
-  static Stream<User?> get userStream =>
-      FirebaseAuth.instance.authStateChanges();
+  final FirebaseAuth firebaseAuth;
+  final GoogleSignIn googleSignIn;
+  final http.Client httpClient;
+  final SharedPreferences prefs;
 
-  static Future<User?> loginWithGoogle() async {
+  AuthController({
+    required this.firebaseAuth,
+    required this.googleSignIn,
+    required this.httpClient,
+    required this.prefs,
+  });
+
+  User? get currentUser => firebaseAuth.currentUser;
+  Stream<User?> get userStream => firebaseAuth.authStateChanges();
+
+  Future<bool> isLoggedIn() async {
+    final userId = prefs.getString('userId');
+    return userId != null;
+  }
+
+  Future<User?> loginWithGoogle() async {
     try {
-      final googleAccount = await GoogleSignIn().signIn();
+      final googleAccount = await googleSignIn.signIn();
       if (googleAccount == null) return null;
 
       final googleAuth = await googleAccount.authentication;
-
       final credential = GoogleAuthProvider.credential(
         accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
       );
 
-      final userCredential = await FirebaseAuth.instance.signInWithCredential(
-        credential,
+      final userCredential = await firebaseAuth.signInWithCredential(credential);
+      final firebaseUser = userCredential.user;
+      if (firebaseUser == null) return null;
+
+      final idToken = await firebaseUser.getIdToken();
+      if (idToken == null) return null;
+
+      final response = await httpClient.post(
+        Uri.parse('https://backend-bdclpm.onrender.com/api/users/verify-token'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'token': idToken}),
       );
 
-      final firebaseUser = userCredential.user;
-      if (firebaseUser == null) {
-        print("Firebase authentication failed, user is null.");
-        return null;
+      if (response.statusCode == 200) {
+        final responseData = json.decode(response.body);
+        await prefs.setString('userId', responseData['_id'] ?? '');
+        await prefs.setString('firebaseId', responseData['firebaseId'] ?? '');
+        await prefs.setString('username', responseData['username'] ?? '');
+        await prefs.setString('email', responseData['email'] ?? '');
+        return firebaseUser;
       }
-      final idToken = await firebaseUser.getIdToken();
-      if (idToken == null) {
-        print("Firebase ID token is null.");
-        return null;
-      }
-
-      if (firebaseUser != null) {
-        final idToken = await firebaseUser.getIdToken();
-
-        final response = await http.post(
-          Uri.parse(
-              'https://backend-bdclpm.onrender.com/api/users/verify-token'),
-          headers: {'Content-Type': 'application/json'},
-          body: jsonEncode({
-            'token': idToken,
-          }),
-        );
-        if (response.statusCode == 200) {
-          final responseData = json.decode(response.body);
-          final userId = responseData['_id'];
-          final firebaseId = responseData['firebaseId'];
-          final username = responseData['username'];
-          final email = responseData['email'];
-          if (userId == null ||
-              firebaseId == null ||
-              username == null ||
-              email == null) {
-            print("One or more required fields are missing from the response");
-            return null;
-          }
-          final prefs = await SharedPreferences.getInstance();
-          await prefs.setString('userId', userId);
-          await prefs.setString('firebaseId', firebaseId);
-          await prefs.setString('username', username);
-          await prefs.setString('email', email);
-
-          print("Thông tin người dùng đã được gửi và lưu thành công");
-        } else {
-          print("Lỗi gửi thông tin: ${response.body}");
-        }
-      }
-
-      return firebaseUser;
     } catch (error) {
-      print("Lỗi trong quá trình đăng nhập Google: $error");
       return null;
     }
+    return null;
   }
 
-  static Future<void> signOut() async {
-    await FirebaseAuth.instance.signOut();
-    await GoogleSignIn().signOut();
-
-    // Clear user data from SharedPreferences
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('userId');
-    await prefs.remove('firebaseId');
-    await prefs.remove('username');
-    await prefs.remove('email');
+  Future<void> signOut() async {
+    await firebaseAuth.signOut();
+    await googleSignIn.signOut();
+    await prefs.clear();
   }
 }

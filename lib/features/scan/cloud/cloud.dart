@@ -4,6 +4,8 @@ import 'package:googleapis/vision/v1.dart' as vision;
 import 'package:gcloud/storage.dart';
 import 'package:mime/mime.dart';
 import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:flutter/foundation.dart';
 
 class CloudApi {
   final auth.ServiceAccountCredentials _credentials;
@@ -84,11 +86,11 @@ class CloudApi {
             response.textAnnotations!.isNotEmpty) {
           var text =
               response.textAnnotations!.first.description ?? 'No text found';
-          return jsonEncode({
-            'status': 'success',
-            'text': text,
-            'fullResponse': batchResponse.toJson(),
-          });
+
+          // Gửi dữ liệu đến backend
+          var backendResponse = await _sendToBackend(text);
+
+          return backendResponse;
         } else {
           return jsonEncode({
             'status': 'error',
@@ -105,6 +107,36 @@ class CloudApi {
       return jsonEncode({
         'status': 'error',
         'message': 'Error extracting text: $e',
+      });
+    }
+  }
+
+  Future<String> _sendToBackend(String extractedText) async {
+    final url =
+        Uri.parse('https://backend-bdclpm.onrender.com/api/gemini/process');
+    try {
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'extractedText': extractedText}),
+      );
+
+      debugPrint('Response Code: ${response.statusCode}');
+      debugPrint('Response Body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        return response.body;
+      } else {
+        return jsonEncode({
+          'status': 'error',
+          'message': 'Failed to process data on backend',
+          'response': response.body,
+        });
+      }
+    } catch (e) {
+      return jsonEncode({
+        'status': 'error',
+        'message': 'Error sending data to backend: $e',
       });
     }
   }
