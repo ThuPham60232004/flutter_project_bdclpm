@@ -48,7 +48,7 @@ class MainApp extends StatelessWidget {
           }
         },
       ),
-      initialRoute: RouteNames.home,
+      initialRoute: RouteNames.login,
       routes: AppRoutes.routes,
       builder: (context, child) {
         return AppInheritedTheme(
