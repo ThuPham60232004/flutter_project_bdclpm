@@ -55,7 +55,8 @@ class _LoginPageState extends State<LoginPage> {
               children: [
                 const Spacer(),
                 ConstrainedBox(
-                  constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.7),
+                  constraints: BoxConstraints(
+                      maxWidth: MediaQuery.of(context).size.width * 0.7),
                   child: Image.asset(
                     'assets/images/h2.png',
                     fit: BoxFit.contain,
@@ -86,7 +87,8 @@ class _LoginPageState extends State<LoginPage> {
                       final user = await authController!.loginWithGoogle();
                       if (user != null && mounted) {
                         Navigator.of(context).pushReplacement(
-                          MaterialPageRoute(builder: (context) => const HomePage()),
+                          MaterialPageRoute(
+                              builder: (context) => const HomePage()),
                         );
                       }
                     } on FirebaseAuthException catch (error) {

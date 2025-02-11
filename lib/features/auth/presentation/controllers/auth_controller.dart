@@ -36,7 +36,8 @@ class AuthController {
         idToken: googleAuth.idToken,
       );
 
-      final userCredential = await firebaseAuth.signInWithCredential(credential);
+      final userCredential =
+          await firebaseAuth.signInWithCredential(credential);
       final firebaseUser = userCredential.user;
       if (firebaseUser == null) return null;
 
