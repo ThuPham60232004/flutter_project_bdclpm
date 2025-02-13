@@ -3,8 +3,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:flutter_project_bdclpm/features/expense/scan/cloud/cloud.dart';
-import 'package:flutter_project_bdclpm/features/expense/scan/presentation/pages/scan_expense_page.dart';
+import 'package:flutter_project_bdclpm/features/expense/controllers/cloud.dart';
+import 'package:flutter_project_bdclpm/features/expense/presentation/scan_expense_page.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class ScanPage extends StatefulWidget {
