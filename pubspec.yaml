@@ -65,4 +65,3 @@ flutter:
     - assets/images/
     - assets/images/hinh1.png
     - assets/images/h2.png
-    - .env.dev
