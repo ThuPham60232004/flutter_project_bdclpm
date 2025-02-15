@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_project_bdclpm/features/listcategory/list_category.dart';
-import 'dart:convert';
-import 'package:http/http.dart' as http;
+import 'package:flutter_project_bdclpm/features/listcategory/presentation/list_category.dart';
+import 'package:flutter_project_bdclpm/features/listcategory/controllers.dart/category_controller.dart';
 
 class CategoryPage extends StatefulWidget {
   @override
@@ -9,33 +8,17 @@ class CategoryPage extends StatefulWidget {
 }
 
 class _CategoryPageState extends State<CategoryPage> {
-  List<dynamic> categories = [];
-  bool isLoading = true;
+  final CategoryController _controller = CategoryController();
 
   @override
   void initState() {
     super.initState();
-    fetchCategories();
+    _taiDanhMuc();
   }
 
-  Future<void> fetchCategories() async {
-    try {
-      final response = await http.get(
-          Uri.parse('https://backend-bdclpm.onrender.com/api/categories/'));
-      if (response.statusCode == 200) {
-        setState(() {
-          categories = json.decode(response.body);
-          isLoading = false;
-        });
-      } else {
-        throw Exception('Không thể tải danh mục');
-      }
-    } catch (error) {
-      setState(() {
-        isLoading = false;
-      });
-      print('Lỗi tải danh mục: $error');
-    }
+  Future<void> _taiDanhMuc() async {
+    await _controller.fetchCategories();
+    setState(() {});
   }
 
   @override
@@ -46,7 +29,7 @@ class _CategoryPageState extends State<CategoryPage> {
         backgroundColor: const Color.fromARGB(255, 255, 255, 255),
         elevation: 6,
       ),
-      body: isLoading
+      body: _controller.getIsLoading()
           ? Center(child: CircularProgressIndicator())
           : Padding(
               padding: const EdgeInsets.all(16),
@@ -57,9 +40,9 @@ class _CategoryPageState extends State<CategoryPage> {
                   crossAxisSpacing: 16,
                   childAspectRatio: 1.1,
                 ),
-                itemCount: categories.length,
+                itemCount: _controller.getCategories().length,
                 itemBuilder: (context, index) {
-                  final category = categories[index];
+                  final category = _controller.getCategories()[index];
                   return GestureDetector(
                     onTap: () {
                       Navigator.push(
@@ -108,7 +91,7 @@ class CategoryTile extends StatelessWidget {
             color: Colors.black12,
             blurRadius: 8,
             offset: Offset(0, 4),
-          ),
+          )
         ],
       ),
       child: Column(

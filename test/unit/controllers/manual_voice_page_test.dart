@@ -25,7 +25,6 @@ void main() {
       registerFallbackValue(Uri());
       registerFallbackValue(<String, String>{});
 
-      // ✅ Stub để tránh lỗi `getString(null)`
       when(() => mockSharedPreferences.getString(any()))
           .thenAnswer((invocation) {
         final key = invocation.positionalArguments.first;

@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:provider/provider.dart';
+import 'package:flutter_project_bdclpm/features/listcategory/controllers.dart/category_wise_expenses_controller.dart';
 
 class CategoryWiseExpensesPage extends StatefulWidget {
   const CategoryWiseExpensesPage({Key? key}) : super(key: key);
@@ -13,56 +12,14 @@ class CategoryWiseExpensesPage extends StatefulWidget {
 }
 
 class _CategoryWiseExpensesPageState extends State<CategoryWiseExpensesPage> {
-  List<dynamic> expensesData = [];
-  bool isLoading = true;
-  String? userId;
-
   @override
   void initState() {
     super.initState();
-    _loadUserId();
+    Provider.of<CategoryWiseExpensesController>(context, listen: false)
+        .loadUserId();
   }
 
-  Future<void> _loadUserId() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? storedUserId = prefs.getString('userId');
-
-    if (storedUserId != null) {
-      setState(() {
-        userId = storedUserId;
-      });
-      fetchExpensesData();
-    } else {
-      setState(() {
-        isLoading = false;
-      });
-      print('Không tìm thấy userId trong SharedPreferences.');
-    }
-  }
-
-  Future<void> fetchExpensesData() async {
-    final String url =
-        'https://backend-bdclpm.onrender.com/api/expenses/expenses-chart/$userId';
-    try {
-      final response = await http.get(Uri.parse(url));
-      if (response.statusCode == 200) {
-        final jsonData = json.decode(response.body);
-        setState(() {
-          expensesData = jsonData['data'];
-          isLoading = false;
-        });
-      } else {
-        throw Exception('Failed to fetch expenses');
-      }
-    } catch (e) {
-      setState(() {
-        isLoading = false;
-      });
-      print('Error: $e');
-    }
-  }
-
-  List<PieChartSectionData> _buildChartSections() {
+  List<PieChartSectionData> _buildChartSections(List<dynamic> expensesData) {
     final double totalAmount = expensesData.fold(
       0.0,
       (sum, item) => sum + (item['totalAmount'] as num).toDouble(),
@@ -89,21 +46,22 @@ class _CategoryWiseExpensesPageState extends State<CategoryWiseExpensesPage> {
 
   @override
   Widget build(BuildContext context) {
+    final controller = Provider.of<CategoryWiseExpensesController>(context);
     return Scaffold(
       appBar: AppBar(
         title: const Text('Biểu đồ chi tiêu theo danh mục'),
         backgroundColor: Colors.white,
       ),
-      body: isLoading
+      body: controller.isLoading
           ? const Center(child: CircularProgressIndicator())
-          : userId == null
+          : controller.userId == null
               ? const Center(
                   child: Text(
                     'Không tìm thấy thông tin người dùng.',
                     style: TextStyle(fontSize: 16),
                   ),
                 )
-              : expensesData.isEmpty
+              : controller.expensesData.isEmpty
                   ? const Center(
                       child: Text(
                         'Không có dữ liệu chi tiêu',
@@ -127,7 +85,7 @@ class _CategoryWiseExpensesPageState extends State<CategoryWiseExpensesPage> {
                             ),
                             const SizedBox(height: 20),
                             SizedBox(
-                              height: 300, // Đặt chiều cao cố định cho biểu đồ
+                              height: 300,
                               child: Card(
                                 elevation: 4,
                                 shape: RoundedRectangleBorder(
@@ -137,7 +95,8 @@ class _CategoryWiseExpensesPageState extends State<CategoryWiseExpensesPage> {
                                   padding: const EdgeInsets.all(8.0),
                                   child: PieChart(
                                     PieChartData(
-                                      sections: _buildChartSections(),
+                                      sections:
+                                          _buildChartSections(controller.expensesData),
                                       centerSpaceRadius: 50,
                                       sectionsSpace: 2,
                                       borderData: FlBorderData(show: false),
@@ -159,13 +118,12 @@ class _CategoryWiseExpensesPageState extends State<CategoryWiseExpensesPage> {
                             ListView.builder(
                               shrinkWrap: true,
                               physics: const NeverScrollableScrollPhysics(),
-                              itemCount: expensesData.length,
+                              itemCount: controller.expensesData.length,
                               itemBuilder: (context, index) {
-                                final expense = expensesData[index];
+                                final expense = controller.expensesData[index];
                                 return Card(
                                   elevation: 2,
-                                  margin:
-                                      const EdgeInsets.symmetric(vertical: 5),
+                                  margin: const EdgeInsets.symmetric(vertical: 5),
                                   child: ListTile(
                                     leading: CircleAvatar(
                                       backgroundColor: Colors.primaries[
@@ -180,8 +138,7 @@ class _CategoryWiseExpensesPageState extends State<CategoryWiseExpensesPage> {
                                     ),
                                     subtitle: Text(
                                       'Số tiền: ${expense['totalAmount']}',
-                                      style:
-                                          const TextStyle(color: Colors.grey),
+                                      style: const TextStyle(color: Colors.grey),
                                     ),
                                   ),
                                 );

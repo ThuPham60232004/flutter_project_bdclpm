@@ -1,12 +1,6 @@
-import 'dart:convert';
-import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:file_picker/file_picker.dart';
-import 'package:syncfusion_flutter_pdf/pdf.dart';
-import 'package:excel/excel.dart';
-import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter_project_bdclpm/features/expense/controllers/pdf_excel_controller.dart';
 import 'package:flutter/services.dart';
 
 class PdfExcelPage extends StatefulWidget {
@@ -15,314 +9,18 @@ class PdfExcelPage extends StatefulWidget {
 }
 
 class _PdfExcelPageState extends State<PdfExcelPage> {
-  final TextEditingController _storeNameController = TextEditingController();
-  final TextEditingController _amountController = TextEditingController();
-  final TextEditingController _dateController = TextEditingController();
-  final TextEditingController _descriptionController = TextEditingController();
-  String? _category;
-  List<dynamic> categories = [];
-  bool isLoadingCategories = true;
+  final PdfExcelController _controller = PdfExcelController();
   String groupValue = 'pdf';
+
   @override
   void initState() {
     super.initState();
-    fetchCategories();
-  }
-
-  Future<void> fetchCategories() async {
-    try {
-      final response = await http
-          .get(Uri.parse('https://backend-bdclpm.onrender.com/api/categories'));
-      if (response.statusCode == 200) {
-        categories = json.decode(response.body);
-      } else {
-        _showSnackBar('Failed to load categories');
-      }
-    } catch (e) {
-      debugPrint('Error fetching categories: $e');
-    } finally {
-      setState(() => isLoadingCategories = false);
-    }
-  }
-
-  void updateDescription(String? categoryName) {
-    final category = categories.firstWhere(
-      (cat) => cat['name'] == categoryName,
-      orElse: () => null,
-    );
-    if (category != null) {
-      _descriptionController.text = category['description'] ?? '';
-    }
+    _controller.fetchCategories();
   }
 
   void _showSnackBar(String message) {
     ScaffoldMessenger.of(context)
         .showSnackBar(SnackBar(content: Text(message)));
-  }
-
-  Future<void> _pickPdfOrExcelFile() async {
-    final result = await FilePicker.platform.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: ['pdf', 'xls', 'xlsx'],
-    );
-
-    if (result != null) {
-      final filePath = result.files.single.path;
-      if (filePath != null) {
-        filePath.endsWith('.pdf')
-            ? _processPdfFile(filePath)
-            : _processExcelFile(filePath);
-      } else {
-        _showSnackBar("Không thể truy cập tệp.");
-      }
-    } else {
-      _showSnackBar("Không có tệp nào được chọn.");
-    }
-  }
-
-  String removeDiacritics(String text) {
-    const accents = {
-      'á': 'a',
-      'à': 'a',
-      'ả': 'a',
-      'ã': 'a',
-      'ạ': 'a',
-      'é': 'e',
-      'è': 'e',
-      'ẻ': 'e',
-      'ẽ': 'e',
-      'ẹ': 'e',
-      'ó': 'o',
-      'ò': 'o',
-      'ỏ': 'o',
-      'õ': 'o',
-      'ọ': 'o',
-      'ú': 'u',
-      'ù': 'u',
-      'ủ': 'u',
-      'ũ': 'u',
-      'ụ': 'u',
-      'ý': 'y',
-      'ỳ': 'y',
-      'ỷ': 'y',
-      'ỹ': 'y',
-      'ỵ': 'y',
-      'đ': 'd',
-    };
-    return text.split('').map((char) => accents[char] ?? char).join('');
-  }
-
-  String categorizeInvoice(String storeName) {
-    List<String> foodKeywords = [
-      'cơm',
-      'mì',
-      'phở',
-      'bánh mì',
-      'chè',
-      'sữa chua'
-    ];
-    List<String> electronicsKeywords = ['laptop', 'phone', 'tv', 'máy tính'];
-    List<String> serviceKeywords = [
-      'dịch vụ',
-      'spa',
-      'thẩm mỹ',
-      'trường',
-      'đại học'
-    ];
-    List<String> clothingKeywords = ['áo', 'quần', 'váy', 'giày', 'túi'];
-    List<String> transportationKeywords = [
-      'vé',
-      'xe',
-      'tàu',
-      'máy bay',
-      'chuyến bay'
-    ];
-
-    List<String> foodStoreKeywords = [
-      'siêu thị',
-      'cửa hàng thực phẩm',
-      'gian hàng thực phẩm'
-    ];
-    List<String> electronicsStoreKeywords = [
-      'cửa hàng điện tử',
-      'trung tâm điện tử',
-      'máy tính'
-    ];
-    List<String> serviceStoreKeywords = [
-      'dịch vụ',
-      'spa',
-      'thẩm mỹ viện',
-      'trường',
-      'đại học',
-      'học phí'
-    ];
-    List<String> clothingStoreKeywords = [
-      'shop quần áo',
-      'thời trang',
-      'shop giày dép'
-    ];
-    List<String> transportationStoreKeywords = [
-      'vé tàu',
-      'vé máy bay',
-      'dịch vụ vận tải'
-    ];
-
-    final normalizedStoreName = removeDiacritics(storeName.toLowerCase());
-
-    bool containsKeywords(List<String> keywords) {
-      return keywords.any((kw) => normalizedStoreName.contains(kw));
-    }
-
-    if (containsKeywords(foodKeywords) || containsKeywords(foodStoreKeywords)) {
-      return 'Thực phẩm';
-    }
-    if (containsKeywords(electronicsKeywords) ||
-        containsKeywords(electronicsStoreKeywords)) {
-      return 'Điện tử';
-    }
-    if (containsKeywords(serviceKeywords) ||
-        containsKeywords(serviceStoreKeywords)) {
-      return 'Dịch vụ';
-    }
-    if (containsKeywords(clothingKeywords) ||
-        containsKeywords(clothingStoreKeywords)) {
-      return 'Thời trang';
-    }
-    if (containsKeywords(transportationKeywords) ||
-        containsKeywords(transportationStoreKeywords)) {
-      return 'Vận chuyển';
-    }
-
-    return 'Khác';
-  }
-
-  void _processPdfFile(String filePath) async {
-    try {
-      final document =
-          PdfDocument(inputBytes: await File(filePath).readAsBytes());
-      final extractedText = PdfTextExtractor(document).extractText();
-      document.dispose();
-
-      final storeName = _extractStoreName(extractedText);
-      final totalAmount = _extractTotalAmount(extractedText);
-      final date = _extractDate(extractedText);
-
-      setState(() {
-        _storeNameController.text = storeName ?? "Không tìm thấy tên cửa hàng";
-        _amountController.text = totalAmount ?? "0";
-        _dateController.text = date ?? DateTime.now().toString();
-        _category = categorizeInvoice(storeName ?? "");
-        _descriptionController.text = "Trích xuất từ PDF";
-      });
-
-      _showSnackBar("Tệp PDF đã được xử lý thành công.");
-    } catch (e) {
-      _showSnackBar("Lỗi khi xử lý PDF: $e");
-    }
-  }
-
-  String? _extractStoreName(String text) {
-    final patterns = [
-      RegExp(r'^Công ty.*$', multiLine: true),
-      RegExp(r'^TRƯỜNG.*$', multiLine: true),
-      RegExp(r'^Nhà hàng.*$', multiLine: true),
-    ];
-
-    for (final pattern in patterns) {
-      final match = pattern.firstMatch(text);
-      if (match != null) return match.group(0)?.trim();
-    }
-    return null;
-  }
-
-  String? _extractTotalAmount(String text) {
-    final pattern = RegExp(r'(tổng cộng|total|tổng)\s*[:\-]?\s*([\d.,]+)',
-        caseSensitive: false);
-    final match = pattern.firstMatch(removeDiacritics(text));
-    return match?.group(2)?.replaceAll(RegExp(r'[^\d]'), '');
-  }
-
-  String? _extractDate(String text) {
-    final match = RegExp(r'(\d{1,2})[/-](\d{1,2})[/-](\d{4})').firstMatch(text);
-    return match != null
-        ? '${match.group(1)}/${match.group(2)}/${match.group(3)}'
-        : null;
-  }
-
-  String formatDate(DateTime date) {
-    return DateFormat('dd/MM/yyyy').format(date); // Adjust format as required
-  }
-
-  void _processExcelFile(String filePath) async {
-    try {
-      final excel = Excel.decodeBytes(await File(filePath).readAsBytesSync());
-      final rows = excel.tables.values.first.rows;
-
-      if (rows.isNotEmpty) {
-        setState(() {
-          _storeNameController.text = rows[0][0]?.value?.toString() ?? "";
-          _amountController.text = rows[0][1]?.value?.toString() ?? "0";
-          _dateController.text = rows[0][2]?.value?.toString() ?? "";
-          _category = rows[0][3]?.value?.toString() ?? "Khác";
-          _descriptionController.text = rows[0][4]?.value?.toString() ?? "";
-        });
-        _showSnackBar("Tệp Excel đã được xử lý thành công.");
-      }
-    } catch (e) {
-      _showSnackBar("Lỗi khi xử lý Excel: $e");
-    }
-  }
-
-  Future<void> saveExpense() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final userId = prefs.getString('userId');
-      if (userId == null)
-        throw Exception('Không tìm thấy thông tin người dùng');
-
-      final selectedCategoryId =
-          categories.firstWhere((cat) => cat['name'] == _category)?['_id'];
-      if (selectedCategoryId == null) throw Exception('Danh mục không hợp lệ');
-
-      // Check if the date is in ISO 8601 format (yyyy-MM-dd)
-      final isIso8601 =
-          RegExp(r'^\d{4}-\d{2}-\d{2}$').hasMatch(_dateController.text);
-
-      String formattedDate;
-
-      if (isIso8601) {
-        // If the date is already in ISO 8601 format, keep it as is
-        formattedDate = _dateController.text;
-      } else {
-        // If the date is in dd/MM/yyyy format, convert it to ISO 8601
-        final parsedDate = DateFormat('dd/MM/yyyy').parse(_dateController.text);
-        formattedDate = parsedDate.toIso8601String();
-      }
-
-      final expenseData = {
-        'userId': userId,
-        'storeName': _storeNameController.text.trim(),
-        'totalAmount': double.tryParse(_amountController.text) ?? 0,
-        'date': formattedDate,
-        'description': _descriptionController.text.trim(),
-        'categoryId': selectedCategoryId,
-      };
-
-      final response = await http.post(
-        Uri.parse('https://backend-bdclpm.onrender.com/api/expenses'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode(expenseData),
-      );
-
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        _showSnackBar('Lưu chi tiêu thành công!');
-        Navigator.of(context).popUntil((route) => route.isFirst);
-      } else {
-        throw Exception('Lỗi khi lưu chi tiêu: ${response.body}');
-      }
-    } catch (e) {
-      _showSnackBar('Đã xảy ra lỗi: $e');
-    }
   }
 
   @override
@@ -370,13 +68,13 @@ class _PdfExcelPageState extends State<PdfExcelPage> {
             ),
             const SizedBox(height: 15),
             _buildTextField(
-              controller: _storeNameController,
+              controller: _controller.storeNameController,
               label: 'Tên cửa hàng',
               keyboardType: TextInputType.text,
             ),
             const SizedBox(height: 15),
             _buildTextField(
-              controller: _amountController,
+              controller: _controller.amountController,
               label: 'Số tiền',
               prefixText: 'VND ',
               keyboardType: TextInputType.number,
@@ -386,7 +84,7 @@ class _PdfExcelPageState extends State<PdfExcelPage> {
             ),
             const SizedBox(height: 15),
             TextFormField(
-              controller: _dateController,
+              controller: _controller.dateController,
               decoration: InputDecoration(
                 labelText: 'Ngày',
                 border: OutlineInputBorder(),
@@ -401,44 +99,52 @@ class _PdfExcelPageState extends State<PdfExcelPage> {
                 );
                 if (pickedDate != null) {
                   setState(() {
-                    _dateController.text =
+                    _controller.dateController.text =
                         DateFormat('dd/MM/yyyy').format(pickedDate);
                   });
                 }
               },
             ),
             const SizedBox(height: 15),
-            _buildTextField(controller: _descriptionController, label: 'Mô tả'),
+            _buildTextField(
+                controller: _controller.descriptionController, label: 'Mô tả'),
             const SizedBox(height: 15),
-            isLoadingCategories
-                ? const CircularProgressIndicator()
-                : DropdownButtonFormField<String>(
-                    value: _category,
-                    hint: const Text("Chọn danh mục"),
-                    decoration: const InputDecoration(
-                      labelText: 'Danh mục',
-                      border: OutlineInputBorder(),
-                    ),
-                    isExpanded: true,
-                    onChanged: (value) {
-                      setState(() {
-                        _category = value;
-                        updateDescription(value);
-                      });
-                    },
-                    items: categories.map((category) {
-                      return DropdownMenuItem<String>(
-                        value: category['name'],
-                        child: Text(category['name']),
-                      );
-                    }).toList(),
+            _controller.isLoadingCategories
+              ? const CircularProgressIndicator()
+              : DropdownButtonFormField<String>(
+                  value: _controller.category,
+                  hint: const Text("Chọn danh mục"),
+                  decoration: const InputDecoration(
+                    labelText: 'Danh mục',
+                    border: OutlineInputBorder(),
                   ),
+                  isExpanded: true,
+                  onChanged: (value) {
+                    setState(() {
+                      _controller.category = value;
+                      _controller.updateDescription(value);
+                    });
+                  },
+                  items: _controller.categories.map((category) {
+                    return DropdownMenuItem<String>(
+                      value: category['name'],
+                      child: Text(category['name']),
+                    );
+                  }).toList(),
+                ),
             const SizedBox(height: 15),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 ElevatedButton(
-                  onPressed: _pickPdfOrExcelFile,
+                  onPressed: () async {
+                    try {
+                      await _controller.pickPdfOrExcelFile();
+                      _showSnackBar("Tệp đã được xử lý thành công.");
+                    } catch (e) {
+                      _showSnackBar("Lỗi: $e");
+                    }
+                  },
                   child: const Text('Chọn Tệp',
                       style: TextStyle(color: Colors.white)),
                   style: ElevatedButton.styleFrom(
@@ -452,7 +158,15 @@ class _PdfExcelPageState extends State<PdfExcelPage> {
                   ),
                 ),
                 ElevatedButton(
-                  onPressed: saveExpense,
+                  onPressed: () async {
+                    try {
+                      await _controller.saveExpense();
+                      _showSnackBar('Lưu chi tiêu thành công!');
+                      Navigator.of(context).popUntil((route) => route.isFirst);
+                    } catch (e) {
+                      _showSnackBar('Đã xảy ra lỗi: $e');
+                    }
+                  },
                   child: const Text('Lưu chi tiêu',
                       style: TextStyle(color: Colors.black)),
                   style: ElevatedButton.styleFrom(

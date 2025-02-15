@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
 import 'package:intl/intl.dart';
+import 'package:flutter_project_bdclpm/features/history/controllers/income_controller.dart';
 
 class IncomeHistoryScreen extends StatefulWidget {
   @override
@@ -9,48 +8,51 @@ class IncomeHistoryScreen extends StatefulWidget {
 }
 
 class _IncomeHistoryScreenState extends State<IncomeHistoryScreen> {
-  List incomes = [];
+  final IncomeController _controller = IncomeController();
+  List<dynamic> incomes = [];
   bool isLoading = true;
   double totalIncome = 0.0;
 
   @override
   void initState() {
     super.initState();
-    fetchIncomes();
+    _loadIncomes();
   }
 
-  Future<void> fetchIncomes() async {
-    final response = await http
-        .get(Uri.parse('https://backend-bdclpm.onrender.com/api/incomes/'));
-    if (response.statusCode == 200) {
+  Future<void> _loadIncomes() async {
+    try {
+      final fetchedIncomes = await _controller.fetchIncomes();
       setState(() {
-        incomes = json.decode(response.body);
-        totalIncome = incomes.fold(
-            0.0, (sum, item) => sum + (item['amount']?.toDouble() ?? 0.0));
+        incomes = fetchedIncomes;
+        totalIncome = _controller.calculateTotalIncome(incomes);
         isLoading = false;
       });
-    } else {
+    } catch (e) {
       setState(() {
         isLoading = false;
       });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to load incomes: $e')),
+      );
     }
   }
 
-  Future<void> deleteIncome(String id) async {
-    final response = await http.delete(
-        Uri.parse('https://backend-bdclpm.onrender.com/api/incomes/$id'));
-    if (response.statusCode == 200) {
+  Future<void> _deleteIncome(String id) async {
+    try {
+      await _controller.deleteIncome(id);
       setState(() {
         incomes.removeWhere((income) => income['_id'] == id);
-        totalIncome = incomes.fold(
-            0.0, (sum, item) => sum + (item['amount']?.toDouble() ?? 0.0));
+        totalIncome = _controller.calculateTotalIncome(incomes);
       });
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to delete income: $e')),
+      );
     }
   }
 
   String formatCurrency(num amount) {
-    final currencyFormatter =
-        NumberFormat.currency(locale: 'vi_VN', symbol: '₫');
+    final currencyFormatter = NumberFormat.currency(locale: 'vi_VN', symbol: '₫');
     return currencyFormatter.format(amount.toDouble());
   }
 
@@ -122,7 +124,7 @@ class _IncomeHistoryScreenState extends State<IncomeHistoryScreen> {
                           trailing: IconButton(
                             icon: Icon(Icons.delete,
                                 color: const Color.fromARGB(255, 0, 0, 0)),
-                            onPressed: () => deleteIncome(income['_id']),
+                            onPressed: () => _deleteIncome(income['_id']),
                           ),
                         ),
                       );

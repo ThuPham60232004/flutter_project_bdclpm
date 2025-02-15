@@ -1,45 +1,26 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:http/http.dart' as http;
 import 'package:fl_chart/fl_chart.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:flutter_project_bdclpm/features/income/controllers/expense_statistics_controller.dart';
 
-class ExpenseStatistics extends StatefulWidget {
+class ExpenseStatisticsScreen extends StatefulWidget {
   @override
-  _ExpenseStatisticsState createState() => _ExpenseStatisticsState();
+  _ExpenseStatisticsScreenState createState() =>
+      _ExpenseStatisticsScreenState();
 }
 
-class _ExpenseStatisticsState extends State<ExpenseStatistics> {
-  int thuNhap = 0;
-  int chiTieu = 0;
-  int soDu = 0;
-  bool dangTai = true;
+class _ExpenseStatisticsScreenState extends State<ExpenseStatisticsScreen> {
+  final ExpenseStatisticsController _controller = ExpenseStatisticsController();
 
   @override
   void initState() {
     super.initState();
-    layThongKe();
+    _taiDuLieu();
   }
 
-  Future<void> layThongKe() async {
-    final prefs = await SharedPreferences.getInstance();
-    final userId = prefs.getString('userId');
-    if (userId == null) return;
-
-    final url =
-        'https://backend-bdclpm.onrender.com/api/expenses/statistics/$userId';
-    final response = await http.get(Uri.parse(url));
-
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      setState(() {
-        thuNhap = data['income'];
-        chiTieu = data['expense'];
-        soDu = thuNhap - chiTieu;
-        dangTai = false;
-      });
-    }
+  Future<void> _taiDuLieu() async {
+    await _controller.layThongKe();
+    setState(() {});
   }
 
   @override
@@ -52,7 +33,7 @@ class _ExpenseStatisticsState extends State<ExpenseStatistics> {
         backgroundColor: Colors.white,
         elevation: 0,
       ),
-      body: dangTai
+      body: _controller.getDangTai()
           ? Center(child: CircularProgressIndicator())
           : Padding(
               padding: EdgeInsets.all(16.0),
@@ -64,16 +45,23 @@ class _ExpenseStatisticsState extends State<ExpenseStatistics> {
                   Row(
                     children: [
                       Expanded(
-                          child: _xayDungTheThongKe('Thu nhập', thuNhap,
-                              Colors.green, FontAwesomeIcons.moneyBillTrendUp)),
+                          child: _xayDungTheThongKe(
+                              'Thu nhập',
+                              _controller.getThuNhap(),
+                              Colors.green,
+                              FontAwesomeIcons.moneyBillTrendUp)),
                       SizedBox(width: 10),
                       Expanded(
-                          child: _xayDungTheThongKe('Chi tiêu', chiTieu,
-                              Colors.red, FontAwesomeIcons.moneyBillWave)),
+                          child: _xayDungTheThongKe(
+                              'Chi tiêu',
+                              _controller.getChiTieu(),
+                              Colors.red,
+                              FontAwesomeIcons.moneyBillWave)),
                     ],
                   ),
                   SizedBox(height: 20),
-                  _xayDungBieuDoTron(thuNhap, chiTieu)
+                  _xayDungBieuDoTron(
+                      _controller.getThuNhap(), _controller.getChiTieu())
                 ],
               ),
             ),
@@ -129,7 +117,7 @@ class _ExpenseStatisticsState extends State<ExpenseStatistics> {
               ),
               SizedBox(height: 8),
               Text(
-                '${soDu.toString()} VND',
+                '${_controller.getSoDu().toString()} VND',
                 style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
