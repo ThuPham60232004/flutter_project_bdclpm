@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'dart:convert';
-import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
-import 'package:flutter_project_bdclpm/features/budget/budget_calendar_page.dart';
+import 'package:flutter_project_bdclpm/features/budget/presentation/budget_calendar_page.dart';
+import 'package:flutter_project_bdclpm/features/budget/controllers/budget_controller.dart';
 
 class BudgetListPage extends StatefulWidget {
   @override
@@ -10,28 +9,23 @@ class BudgetListPage extends StatefulWidget {
 }
 
 class _BudgetListPageState extends State<BudgetListPage> {
+  final BudgetController _budgetController = BudgetController();
   List<dynamic> budgets = [];
   bool isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    fetchBudgets();
+    loadBudgets();
   }
 
-  Future<void> fetchBudgets() async {
+  Future<void> loadBudgets() async {
     try {
-      final response = await http
-          .get(Uri.parse('https://backend-bdclpm.onrender.com/api/budgets/'));
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        setState(() {
-          budgets = data;
-          isLoading = false;
-        });
-      } else {
-        throw Exception('Không thể tải danh sách ngân sách');
-      }
+      final data = await _budgetController.fetchBudgets();
+      setState(() {
+        budgets = data;
+        isLoading = false;
+      });
     } catch (error) {
       setState(() {
         isLoading = false;

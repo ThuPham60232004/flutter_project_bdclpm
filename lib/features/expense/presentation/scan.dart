@@ -34,14 +34,12 @@ class _ScanPageState extends State<ScanPage> {
 
   Future<void> _initializeApi() async {
     try {
-      final credentialsJson = dotenv.env['GOOGLE_CREDENTIALS'];
-      if (credentialsJson == null || credentialsJson.isEmpty) {
-        throw Exception("Missing GOOGLE_CREDENTIALS in .env file");
-      }
-
+      final credentialsJson =
+          await rootBundle.loadString('assets/key/credentials.json');
       api = CloudApi(credentialsJson);
-    } catch (e) {
-      debugPrint('Error loading credentials: $e');
+      debugPrint('✅ API initialized: $api');
+    } catch (e, stackTrace) {
+      debugPrint('❌ Error initializing API: $e\n$stackTrace');
     }
   }
 
