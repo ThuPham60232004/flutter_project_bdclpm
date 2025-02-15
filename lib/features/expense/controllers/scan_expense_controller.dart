@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter_project_bdclpm/features/expense/controllers/cloud.dart';
+
 class ScanExpenseController {
   String? userId;
   File? image;
@@ -74,7 +75,8 @@ class ScanExpenseController {
 
     try {
       final resultJson = await api.extractTextFromImage(imageBytes!);
-      extractedText = const JsonEncoder.withIndent("  ").convert(json.decode(resultJson));
+      extractedText =
+          const JsonEncoder.withIndent("  ").convert(json.decode(resultJson));
     } catch (e) {
       throw Exception('Error extracting text: $e');
     } finally {

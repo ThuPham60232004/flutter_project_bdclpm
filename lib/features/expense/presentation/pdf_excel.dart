@@ -110,28 +110,28 @@ class _PdfExcelPageState extends State<PdfExcelPage> {
                 controller: _controller.descriptionController, label: 'Mô tả'),
             const SizedBox(height: 15),
             _controller.isLoadingCategories
-              ? const CircularProgressIndicator()
-              : DropdownButtonFormField<String>(
-                  value: _controller.category,
-                  hint: const Text("Chọn danh mục"),
-                  decoration: const InputDecoration(
-                    labelText: 'Danh mục',
-                    border: OutlineInputBorder(),
+                ? const CircularProgressIndicator()
+                : DropdownButtonFormField<String>(
+                    value: _controller.category,
+                    hint: const Text("Chọn danh mục"),
+                    decoration: const InputDecoration(
+                      labelText: 'Danh mục',
+                      border: OutlineInputBorder(),
+                    ),
+                    isExpanded: true,
+                    onChanged: (value) {
+                      setState(() {
+                        _controller.category = value;
+                        _controller.updateDescription(value);
+                      });
+                    },
+                    items: _controller.categories.map((category) {
+                      return DropdownMenuItem<String>(
+                        value: category['name'],
+                        child: Text(category['name']),
+                      );
+                    }).toList(),
                   ),
-                  isExpanded: true,
-                  onChanged: (value) {
-                    setState(() {
-                      _controller.category = value;
-                      _controller.updateDescription(value);
-                    });
-                  },
-                  items: _controller.categories.map((category) {
-                    return DropdownMenuItem<String>(
-                      value: category['name'],
-                      child: Text(category['name']),
-                    );
-                  }).toList(),
-                ),
             const SizedBox(height: 15),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,

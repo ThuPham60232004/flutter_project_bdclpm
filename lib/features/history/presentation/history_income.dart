@@ -52,7 +52,8 @@ class _IncomeHistoryScreenState extends State<IncomeHistoryScreen> {
   }
 
   String formatCurrency(num amount) {
-    final currencyFormatter = NumberFormat.currency(locale: 'vi_VN', symbol: '₫');
+    final currencyFormatter =
+        NumberFormat.currency(locale: 'vi_VN', symbol: '₫');
     return currencyFormatter.format(amount.toDouble());
   }
 

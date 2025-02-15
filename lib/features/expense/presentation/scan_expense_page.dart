@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_project_bdclpm/features/expense/controllers/scan_expense_controller.dart';
 import 'package:flutter/services.dart';
+
 class ScanExpensePage extends StatefulWidget {
   final String storeName;
   final double totalAmount;
@@ -38,10 +39,12 @@ class _ScanExpensePageState extends State<ScanExpensePage> {
   }
 
   void _showSnackBar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(message)));
   }
 
-  Widget _buildTextField(String label, String value, {bool isDropdown = false}) {
+  Widget _buildTextField(String label, String value,
+      {bool isDropdown = false}) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: TextFormField(
@@ -116,7 +119,8 @@ class _ScanExpensePageState extends State<ScanExpensePage> {
             ),
             const SizedBox(height: 12),
             _buildTextField("Tên cửa hàng", widget.storeName),
-            _buildTextField("Số tiền", _controller.formatCurrency(widget.totalAmount)),
+            _buildTextField(
+                "Số tiền", _controller.formatCurrency(widget.totalAmount)),
             _buildTextField("Ngày", widget.date),
             _buildTextField("Mô tả", widget.description),
             _buildTextField("Danh mục", widget.categoryname),

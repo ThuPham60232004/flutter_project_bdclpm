@@ -17,7 +17,6 @@ class PdfExcelController {
   List<dynamic> categories = [];
   bool isLoadingCategories = true;
 
-
   Future<void> fetchCategories() async {
     try {
       final response = await http
@@ -32,14 +31,13 @@ class PdfExcelController {
     } finally {
       isLoadingCategories = false;
       if (categories.isNotEmpty) {
-        category = categories.first['name']; 
+        category = categories.first['name'];
       }
       if (categories.isNotEmpty) {
-        category = categories.first['name']; 
+        category = categories.first['name'];
       }
     }
   }
-
 
   void updateDescription(String? categoryName) {
     final category = categories.firstWhere(

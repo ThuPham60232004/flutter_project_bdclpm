@@ -9,8 +9,8 @@ class ListCategoryController with ChangeNotifier {
 
   Future<void> fetchExpenses(String categoryId) async {
     try {
-      final response = await http.get(
-          Uri.parse('https://backend-bdclpm.onrender.com/api/expenses/category/$categoryId'));
+      final response = await http.get(Uri.parse(
+          'https://backend-bdclpm.onrender.com/api/expenses/category/$categoryId'));
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         expenses = data;
@@ -28,6 +28,7 @@ class ListCategoryController with ChangeNotifier {
   }
 
   double _calculateTotalSpent(List<dynamic> expenses) {
-    return expenses.fold(0.0, (sum, expense) => sum + (expense['totalAmount'] ?? 0.0));
+    return expenses.fold(
+        0.0, (sum, expense) => sum + (expense['totalAmount'] ?? 0.0));
   }
 }

@@ -3,7 +3,8 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class IncomeController {
-  final String apiUrl = "https://backend-bdclpm.onrender.com/api/gemini/income-command";
+  final String apiUrl =
+      "https://backend-bdclpm.onrender.com/api/gemini/income-command";
   String? userId;
   List<Map<String, String>> messages = [];
 
@@ -30,8 +31,8 @@ class IncomeController {
         "text": jsonResponse["message"] ?? "Lỗi nhận tin nhắn"
       });
     } else {
-      messages.add(
-          {"sender": "bot", "text": "Chatbot gặp lỗi, vui lòng thử lại!"});
+      messages
+          .add({"sender": "bot", "text": "Chatbot gặp lỗi, vui lòng thử lại!"});
     }
   }
 

@@ -21,6 +21,7 @@ class IncomeController {
   }
 
   double calculateTotalIncome(List<dynamic> incomes) {
-    return incomes.fold(0.0, (sum, item) => sum + (item['amount']?.toDouble() ?? 0.0));
+    return incomes.fold(
+        0.0, (sum, item) => sum + (item['amount']?.toDouble() ?? 0.0));
   }
 }

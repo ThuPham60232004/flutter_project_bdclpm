@@ -9,7 +9,8 @@ class HistoryController {
   }
 
   Future<List<dynamic>> fetchOrderHistory(String userId) async {
-    final url = Uri.parse('https://backend-bdclpm.onrender.com/api/expenses/$userId');
+    final url =
+        Uri.parse('https://backend-bdclpm.onrender.com/api/expenses/$userId');
     try {
       final response = await http.get(url);
       if (response.statusCode == 200) {

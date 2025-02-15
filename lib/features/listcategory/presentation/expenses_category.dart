@@ -95,8 +95,8 @@ class _CategoryWiseExpensesPageState extends State<CategoryWiseExpensesPage> {
                                   padding: const EdgeInsets.all(8.0),
                                   child: PieChart(
                                     PieChartData(
-                                      sections:
-                                          _buildChartSections(controller.expensesData),
+                                      sections: _buildChartSections(
+                                          controller.expensesData),
                                       centerSpaceRadius: 50,
                                       sectionsSpace: 2,
                                       borderData: FlBorderData(show: false),
@@ -123,7 +123,8 @@ class _CategoryWiseExpensesPageState extends State<CategoryWiseExpensesPage> {
                                 final expense = controller.expensesData[index];
                                 return Card(
                                   elevation: 2,
-                                  margin: const EdgeInsets.symmetric(vertical: 5),
+                                  margin:
+                                      const EdgeInsets.symmetric(vertical: 5),
                                   child: ListTile(
                                     leading: CircleAvatar(
                                       backgroundColor: Colors.primaries[
@@ -138,7 +139,8 @@ class _CategoryWiseExpensesPageState extends State<CategoryWiseExpensesPage> {
                                     ),
                                     subtitle: Text(
                                       'Số tiền: ${expense['totalAmount']}',
-                                      style: const TextStyle(color: Colors.grey),
+                                      style:
+                                          const TextStyle(color: Colors.grey),
                                     ),
                                   ),
                                 );

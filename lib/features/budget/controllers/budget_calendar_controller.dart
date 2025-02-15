@@ -10,15 +10,17 @@ class BudgetCalendarController {
     return prefs.getString('userId');
   }
 
-  Future<Map<String, dynamic>> checkBudgetLimit(String userId, String budgetId) async {
+  Future<Map<String, dynamic>> checkBudgetLimit(
+      String userId, String budgetId) async {
     try {
-      final url = Uri.parse('$baseUrl/api/budgets/check-budget-limit/$userId/$budgetId');
+      final url = Uri.parse(
+          '$baseUrl/api/budgets/check-budget-limit/$userId/$budgetId');
       final response = await http.get(url);
       final data = jsonDecode(response.body);
 
       if (response.statusCode == 200 || response.statusCode == 400) {
-        if (!data.containsKey('startBudgetDate') || 
-            !data.containsKey('endBudgetDate') || 
+        if (!data.containsKey('startBudgetDate') ||
+            !data.containsKey('endBudgetDate') ||
             !data.containsKey('budgetAmount')) {
           throw Exception('Dữ liệu không hợp lệ từ server');
         }

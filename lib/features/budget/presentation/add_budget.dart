@@ -50,8 +50,8 @@ class _CreateBudgetScreenState extends State<CreateBudgetScreen> {
       return;
     }
 
-    bool isOverlap =
-        await _controller.isOverlapping(userId, _startBudgetDate, _endBudgetDate);
+    bool isOverlap = await _controller.isOverlapping(
+        userId, _startBudgetDate, _endBudgetDate);
     if (isOverlap) {
       _showSnackBar('Ngân sách đã trùng với khoảng thời gian khác.');
       return;
@@ -75,7 +75,8 @@ class _CreateBudgetScreenState extends State<CreateBudgetScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Ngân sách'), backgroundColor: Colors.white),
+      appBar:
+          AppBar(title: const Text('Ngân sách'), backgroundColor: Colors.white),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(

@@ -158,7 +158,8 @@ class _BudgetCalendarPageState extends State<BudgetCalendarPage> {
                 color: Colors.green.withOpacity(0.5),
                 shape: BoxShape.rectangle,
               ),
-              child: Text('${date.day}', style: const TextStyle(color: Colors.black)),
+              child: Text('${date.day}',
+                  style: const TextStyle(color: Colors.black)),
             );
           }
           return null;
@@ -180,13 +181,16 @@ class _BudgetCalendarPageState extends State<BudgetCalendarPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Danh sách chi tiêu:', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+        const Text('Danh sách chi tiêu:',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
         const SizedBox(height: 10),
         ..._expenses.map((expense) {
           final expenseDate = DateTime.parse(expense['date']);
           return ListTile(
-            title: Text('Chi tiêu: ${NumberFormat.currency(locale: 'vi', symbol: '₫').format(expense['totalAmount'])}'),
-            subtitle: Text('Ngày: ${DateFormat('dd/MM/yyyy').format(expenseDate)}'),
+            title: Text(
+                'Chi tiêu: ${NumberFormat.currency(locale: 'vi', symbol: '₫').format(expense['totalAmount'])}'),
+            subtitle:
+                Text('Ngày: ${DateFormat('dd/MM/yyyy').format(expenseDate)}'),
             trailing: const Icon(Icons.money),
           );
         }).toList(),

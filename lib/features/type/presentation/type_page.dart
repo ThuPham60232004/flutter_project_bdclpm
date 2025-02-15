@@ -12,12 +12,14 @@ class TypePage extends StatelessWidget {
       child: Scaffold(
         appBar: AppBar(
           backgroundColor: Colors.white,
-          title: const Text('Chọn kiểu nhập', style: TextStyle(color: Colors.black)),
+          title: const Text('Chọn kiểu nhập',
+              style: TextStyle(color: Colors.black)),
           iconTheme: const IconThemeData(color: Colors.black),
         ),
         body: SingleChildScrollView(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 46.0),
+            padding:
+                const EdgeInsets.symmetric(horizontal: 20.0, vertical: 46.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -35,9 +37,12 @@ class TypePage extends StatelessWidget {
                   builder: (context, controller, child) {
                     return Column(
                       children: [
-                        buildOptionRow(context, 'Nhập thủ công, giọng nói', TypePageController.manualvoice, controller),
-                        buildOptionRow(context, 'Quét hóa đơn', TypePageController.scan, controller),
-                        buildOptionRow(context, 'Quét pdf/excel', TypePageController.pdfexcel, controller),
+                        buildOptionRow(context, 'Nhập thủ công, giọng nói',
+                            TypePageController.manualvoice, controller),
+                        buildOptionRow(context, 'Quét hóa đơn',
+                            TypePageController.scan, controller),
+                        buildOptionRow(context, 'Quét pdf/excel',
+                            TypePageController.pdfexcel, controller),
                       ],
                     );
                   },
@@ -50,13 +55,15 @@ class TypePage extends StatelessWidget {
     );
   }
 
-  Widget buildOptionRow(BuildContext context, String text, String route, TypePageController controller) {
+  Widget buildOptionRow(BuildContext context, String text, String route,
+      TypePageController controller) {
     return Row(
       children: <Widget>[
         Radio<String>(
           value: route,
           groupValue: controller.selectedOption,
-          onChanged: (String? newValue) => controller.selectOption(context, newValue),
+          onChanged: (String? newValue) =>
+              controller.selectOption(context, newValue),
           activeColor: Colors.grey,
           fillColor: MaterialStateProperty.all(Colors.grey),
         ),

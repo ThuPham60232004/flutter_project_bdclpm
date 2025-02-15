@@ -32,15 +32,16 @@ class _ScanPageState extends State<ScanPage> {
     _initializeApi();
   }
 
-Future<void> _initializeApi() async {
-  try {
-    final credentialsJson = await rootBundle.loadString('assets/key/credentials.json');
-    api = CloudApi(credentialsJson);
-    debugPrint('✅ API initialized: $api');
-  } catch (e, stackTrace) {
-    debugPrint('❌ Error initializing API: $e\n$stackTrace');
+  Future<void> _initializeApi() async {
+    try {
+      final credentialsJson =
+          await rootBundle.loadString('assets/key/credentials.json');
+      api = CloudApi(credentialsJson);
+      debugPrint('✅ API initialized: $api');
+    } catch (e, stackTrace) {
+      debugPrint('❌ Error initializing API: $e\n$stackTrace');
+    }
   }
-}
 
   Future<void> _getImage() async {
     try {

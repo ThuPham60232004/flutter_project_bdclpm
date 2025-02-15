@@ -7,7 +7,8 @@ class ListCategoryPage extends StatelessWidget {
   final String categoryId;
   final String categoryName;
 
-  const ListCategoryPage({required this.categoryId, required this.categoryName});
+  const ListCategoryPage(
+      {required this.categoryId, required this.categoryName});
 
   @override
   Widget build(BuildContext context) {
@@ -21,7 +22,8 @@ class ListCategoryPage extends StatelessWidget {
         appBar: AppBar(
           title: Center(
             child: Text('Chi tiêu: $categoryName',
-                style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+                style: TextStyle(
+                    color: Colors.black, fontWeight: FontWeight.bold)),
           ),
           backgroundColor: Colors.white,
           elevation: 0,
@@ -43,7 +45,8 @@ class ListCategoryPage extends StatelessWidget {
                                 padding: EdgeInsets.all(16),
                                 itemCount: controller.expenses.length,
                                 itemBuilder: (context, index) {
-                                  return ExpenseCard(expense: controller.expenses[index]);
+                                  return ExpenseCard(
+                                      expense: controller.expenses[index]);
                                 },
                               ),
                       ),
@@ -82,10 +85,17 @@ class ListCategoryPage extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text('Tổng chi tiêu',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+                    style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white)),
                 SizedBox(height: 8),
-                Text('-${NumberFormat.currency(locale: 'vi', symbol: '₫').format(totalSpent)}',
-                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white)),
+                Text(
+                    '-${NumberFormat.currency(locale: 'vi', symbol: '₫').format(totalSpent)}',
+                    style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white)),
               ],
             ),
             Icon(Icons.account_balance_wallet, size: 40, color: Colors.white),
@@ -115,11 +125,15 @@ class ExpenseCard extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4)),
+          BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 4)),
         ],
       ),
       child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
         leading: CircleAvatar(
           radius: 24,
           backgroundColor: Colors.grey,
@@ -131,7 +145,8 @@ class ExpenseCard extends StatelessWidget {
           overflow: TextOverflow.ellipsis,
           maxLines: 1,
         ),
-        subtitle: Text('Ngày: $formattedDate', style: const TextStyle(color: Colors.black54, fontSize: 14)),
+        subtitle: Text('Ngày: $formattedDate',
+            style: const TextStyle(color: Colors.black54, fontSize: 14)),
         trailing: Text(
           '${NumberFormat.currency(locale: 'vi_VN', symbol: '₫').format(totalAmount)}',
           style: const TextStyle(fontWeight: FontWeight.bold),
