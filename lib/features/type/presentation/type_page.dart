@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:flutter_project_bdclpm/features/type/controllers.dart/type_page_controller.dart';
+import 'package:flutter_project_bdclpm/features/type/controllers/type_page_controller.dart';
 
 class TypePage extends StatelessWidget {
   const TypePage({super.key});
