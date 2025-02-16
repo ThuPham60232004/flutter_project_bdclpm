@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:flutter_project_bdclpm/features/history/controllers/income_controller.dart';
+import 'package:flutter_project_bdclpm/features/history/controllers/income_history_controller.dart';
 
 class IncomeHistoryScreen extends StatefulWidget {
   @override

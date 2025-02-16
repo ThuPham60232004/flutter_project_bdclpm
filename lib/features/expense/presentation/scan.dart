@@ -261,7 +261,7 @@ class _ScanPageState extends State<ScanPage> {
   double _parseTotalAmount(dynamic totalAmount) {
     if (totalAmount == null) return 0.0;
     String amountStr = totalAmount.toString().replaceAll(
-          '.',
+          ',',
           '',
         );
     return double.tryParse(amountStr) ?? 0.0;
