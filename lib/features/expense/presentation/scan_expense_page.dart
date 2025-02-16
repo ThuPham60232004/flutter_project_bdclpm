@@ -46,36 +46,42 @@ class _ScanExpensePageState extends State<ScanExpensePage> {
   }
 
   void _showSnackBar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(message)));
   }
 
-Widget _buildTextField(String label, String value, {bool isDropdown = false, TextEditingController? controller, List<TextInputFormatter>? inputFormatters}) {
-  return Padding(
-    padding: const EdgeInsets.only(bottom: 12),
-    child: TextFormField(
-      controller: isDropdown ? null : controller ?? TextEditingController(text: value),
-      readOnly: isDropdown,
-      inputFormatters: inputFormatters,
-      decoration: InputDecoration(
-        labelText: label,
-        filled: true,
-        fillColor: Colors.grey[100],
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide.none,
+  Widget _buildTextField(String label, String value,
+      {bool isDropdown = false,
+      TextEditingController? controller,
+      List<TextInputFormatter>? inputFormatters}) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: TextFormField(
+        controller: isDropdown
+            ? null
+            : controller ?? TextEditingController(text: value),
+        readOnly: isDropdown,
+        inputFormatters: inputFormatters,
+        decoration: InputDecoration(
+          labelText: label,
+          filled: true,
+          fillColor: Colors.grey[100],
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide.none,
+          ),
+          suffixIcon: isDropdown ? const Icon(Icons.arrow_drop_down) : null,
         ),
-        suffixIcon: isDropdown ? const Icon(Icons.arrow_drop_down) : null,
       ),
-    ),
-  );
-}
-
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Thêm chi tiêu", style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text("Thêm chi tiêu",
+            style: TextStyle(fontWeight: FontWeight.bold)),
         leading: const BackButton(),
         backgroundColor: Colors.white,
       ),
@@ -84,16 +90,20 @@ Widget _buildTextField(String label, String value, {bool isDropdown = false, Tex
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text("Bạn muốn nhập chi tiêu như thế nào?", style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+            const Text("Bạn muốn nhập chi tiêu như thế nào?",
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
             ..._methods.map((method) => RadioListTile<int>(
                   value: method['value'] as int,
                   groupValue: selectedMethod,
-                  onChanged: method['enabled'] ? (int? value) => setState(() => selectedMethod = value!) : null,
+                  onChanged: method['enabled']
+                      ? (int? value) => setState(() => selectedMethod = value!)
+                      : null,
                   title: Text(method['label'] as String),
                 )),
             const SizedBox(height: 12),
             _buildTextField("Tên cửa hàng", widget.storeName),
-            _buildTextField("Số tiền", _controller.formatCurrency(widget.totalAmount)),
+            _buildTextField(
+                "Số tiền", _controller.formatCurrency(widget.totalAmount)),
             _buildTextField(
               "Ngày",
               widget.date,
@@ -125,9 +135,11 @@ Widget _buildTextField(String label, String value, {bool isDropdown = false, Tex
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.black,
                 minimumSize: const Size(double.infinity, 50),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12)),
               ),
-              child: const Text("Lưu chi tiêu", style: TextStyle(color: Colors.white, fontSize: 16)),
+              child: const Text("Lưu chi tiêu",
+                  style: TextStyle(color: Colors.white, fontSize: 16)),
             ),
           ],
         ),
@@ -135,11 +147,13 @@ Widget _buildTextField(String label, String value, {bool isDropdown = false, Tex
     );
   }
 }
+
 class DateInputFormatter extends TextInputFormatter {
   @override
   TextEditingValue formatEditUpdate(
       TextEditingValue oldValue, TextEditingValue newValue) {
-    String digitsOnly = newValue.text.replaceAll(RegExp(r'\D'), ''); // Chỉ giữ lại số
+    String digitsOnly =
+        newValue.text.replaceAll(RegExp(r'\D'), ''); // Chỉ giữ lại số
 
     if (digitsOnly.isEmpty) return newValue;
 

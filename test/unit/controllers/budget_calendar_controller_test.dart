@@ -4,7 +4,9 @@ import 'package:mockito/mockito.dart';
 import 'package:flutter_project_bdclpm/features/budget/controllers/budget_calendar_controller.dart';
 import 'package:flutter_project_bdclpm/features/budget/presentation/budget_calendar_page.dart';
 import '../../mocks/mocks.mocks.dart';
-class MockBudgetCalendarController extends Mock implements BudgetCalendarController {}
+
+class MockBudgetCalendarController extends Mock
+    implements BudgetCalendarController {}
 
 void main() {
   late MockBudgetCalendarController mockController;
@@ -14,7 +16,8 @@ void main() {
   });
 
   group('BudgetCalendarPage', () {
-    testWidgets('should display budget information correctly', (WidgetTester tester) async {
+    testWidgets('should display budget information correctly',
+        (WidgetTester tester) async {
       final budget = {
         '_id': '1',
         'amount': 1000000,
@@ -23,12 +26,13 @@ void main() {
       };
 
       when(mockController.getUserId()).thenAnswer((_) async => 'user1');
-      when(mockController.checkBudgetLimit('user1', '1')).thenAnswer((_) async => {
-        'message': 'Ngân sách hợp lệ',
-        'status': 'valid',
-        'totalExpenses': 500000,
-        'expenses': [],
-      });
+      when(mockController.checkBudgetLimit('user1', '1'))
+          .thenAnswer((_) async => {
+                'message': 'Ngân sách hợp lệ',
+                'status': 'valid',
+                'totalExpenses': 500000,
+                'expenses': [],
+              });
 
       await tester.pumpWidget(MaterialApp(
         home: BudgetCalendarPage(budget: budget),
@@ -42,7 +46,8 @@ void main() {
       expect(find.text('Tổng chi tiêu: ₫500,000'), findsOneWidget);
     });
 
-    testWidgets('should display error message when userId is null', (WidgetTester tester) async {
+    testWidgets('should display error message when userId is null',
+        (WidgetTester tester) async {
       final budget = {
         '_id': '1',
         'amount': 1000000,
@@ -61,7 +66,8 @@ void main() {
       expect(find.text('Không tìm thấy userId!'), findsOneWidget);
     });
 
-    testWidgets('should display error message when API call fails', (WidgetTester tester) async {
+    testWidgets('should display error message when API call fails',
+        (WidgetTester tester) async {
       final budget = {
         '_id': '1',
         'amount': 1000000,
@@ -70,7 +76,8 @@ void main() {
       };
 
       when(mockController.getUserId()).thenAnswer((_) async => 'user1');
-      when(mockController.checkBudgetLimit('user1', '1')).thenThrow(Exception('API Error'));
+      when(mockController.checkBudgetLimit('user1', '1'))
+          .thenThrow(Exception('API Error'));
 
       await tester.pumpWidget(MaterialApp(
         home: BudgetCalendarPage(budget: budget),
@@ -78,10 +85,13 @@ void main() {
 
       await tester.pumpAndSettle();
 
-      expect(find.text('Lỗi khi tải dữ liệu: Exception: API Error'), findsOneWidget);
+      expect(find.text('Lỗi khi tải dữ liệu: Exception: API Error'),
+          findsOneWidget);
     });
 
-    testWidgets('should display budget is invalid when current date is outside budget range', (WidgetTester tester) async {
+    testWidgets(
+        'should display budget is invalid when current date is outside budget range',
+        (WidgetTester tester) async {
       final budget = {
         '_id': '1',
         'amount': 1000000,
@@ -90,12 +100,13 @@ void main() {
       };
 
       when(mockController.getUserId()).thenAnswer((_) async => 'user1');
-      when(mockController.checkBudgetLimit('user1', '1')).thenAnswer((_) async => {
-        'message': 'Ngân sách hợp lệ',
-        'status': 'valid',
-        'totalExpenses': 500000,
-        'expenses': [],
-      });
+      when(mockController.checkBudgetLimit('user1', '1'))
+          .thenAnswer((_) async => {
+                'message': 'Ngân sách hợp lệ',
+                'status': 'valid',
+                'totalExpenses': 500000,
+                'expenses': [],
+              });
 
       await tester.pumpWidget(MaterialApp(
         home: BudgetCalendarPage(budget: budget),
@@ -106,7 +117,8 @@ void main() {
       expect(find.text('Ngân sách này không còn hiệu lực!'), findsOneWidget);
     });
 
-    testWidgets('should display expense list when expenses are available', (WidgetTester tester) async {
+    testWidgets('should display expense list when expenses are available',
+        (WidgetTester tester) async {
       final budget = {
         '_id': '1',
         'amount': 1000000,
@@ -115,15 +127,16 @@ void main() {
       };
 
       when(mockController.getUserId()).thenAnswer((_) async => 'user1');
-      when(mockController.checkBudgetLimit('user1', '1')).thenAnswer((_) async => {
-        'message': 'Ngân sách hợp lệ',
-        'status': 'valid',
-        'totalExpenses': 500000,
-        'expenses': [
-          {'date': '2023-10-15T00:00:00.000Z', 'totalAmount': 200000},
-          {'date': '2023-10-20T00:00:00.000Z', 'totalAmount': 300000},
-        ],
-      });
+      when(mockController.checkBudgetLimit('user1', '1'))
+          .thenAnswer((_) async => {
+                'message': 'Ngân sách hợp lệ',
+                'status': 'valid',
+                'totalExpenses': 500000,
+                'expenses': [
+                  {'date': '2023-10-15T00:00:00.000Z', 'totalAmount': 200000},
+                  {'date': '2023-10-20T00:00:00.000Z', 'totalAmount': 300000},
+                ],
+              });
 
       await tester.pumpWidget(MaterialApp(
         home: BudgetCalendarPage(budget: budget),
