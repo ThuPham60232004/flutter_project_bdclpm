@@ -30,6 +30,13 @@ class _ScanExpensePageState extends State<ScanExpensePage> {
   final TextEditingController dateController = TextEditingController();
   final TextEditingController amountController = TextEditingController();
 
+  final List<Map<String, dynamic>> _methods = [
+    {'value': 0, 'label': "Nhập thủ công", 'enabled': false},
+    {'value': 1, 'label': "Quét hóa đơn", 'enabled': true},
+    {'value': 2, 'label': "Quét pdf/excel", 'enabled': false},
+    {'value': 3, 'label': "Nhận dạng giọng nói", 'enabled': false},
+  ];
+
   @override
   void initState() {
     super.initState();
@@ -39,89 +46,63 @@ class _ScanExpensePageState extends State<ScanExpensePage> {
   }
 
   void _showSnackBar(String message) {
-    ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
   }
 
-  Widget _buildTextField(String label, String value,
-      {bool isDropdown = false}) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: TextFormField(
-        controller: isDropdown ? null : TextEditingController(text: value),
-        readOnly: isDropdown ? true : false,
-        decoration: InputDecoration(
-          labelText: label,
-          filled: true,
-          fillColor: Colors.grey[100],
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide.none,
-          ),
-          suffixIcon: isDropdown ? Icon(Icons.arrow_drop_down) : null,
+Widget _buildTextField(String label, String value, {bool isDropdown = false, TextEditingController? controller, List<TextInputFormatter>? inputFormatters}) {
+  return Padding(
+    padding: const EdgeInsets.only(bottom: 12),
+    child: TextFormField(
+      controller: isDropdown ? null : controller ?? TextEditingController(text: value),
+      readOnly: isDropdown,
+      inputFormatters: inputFormatters,
+      decoration: InputDecoration(
+        labelText: label,
+        filled: true,
+        fillColor: Colors.grey[100],
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide.none,
         ),
-        inputFormatters: label == "Ngày"
-            ? [
-                FilteringTextInputFormatter.digitsOnly,
-                LengthLimitingTextInputFormatter(10),
-                DateInputFormatter(),
-              ]
-            : label == "Số tiền"
-                ? [
-                    FilteringTextInputFormatter.digitsOnly,
-                    LengthLimitingTextInputFormatter(15),
-                  ]
-                : [],
+        suffixIcon: isDropdown ? const Icon(Icons.arrow_drop_down) : null,
       ),
-    );
-  }
+    ),
+  );
+}
+
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Thêm chi tiêu",
-            style: TextStyle(fontWeight: FontWeight.bold)),
-        leading: BackButton(),
+        title: const Text("Thêm chi tiêu", style: TextStyle(fontWeight: FontWeight.bold)),
+        leading: const BackButton(),
         backgroundColor: Colors.white,
       ),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text("Bạn muốn nhập chi tiêu như thế nào?",
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
-            RadioListTile(
-              value: 0,
-              groupValue: selectedMethod,
-              onChanged: null,
-              title: Text("Nhập thủ công"),
-            ),
-            RadioListTile(
-              value: 1,
-              groupValue: selectedMethod,
-              onChanged: (value) =>
-                  setState(() => selectedMethod = value as int),
-              title: Text("Quét hóa đơn"),
-            ),
-            RadioListTile(
-              value: 2,
-              groupValue: selectedMethod,
-              onChanged: null,
-              title: Text("Quét pdf/excel"),
-            ),
-            RadioListTile(
-              value: 3,
-              groupValue: selectedMethod,
-              onChanged: null,
-              title: Text("Nhận dạng giọng nói"),
-            ),
+            const Text("Bạn muốn nhập chi tiêu như thế nào?", style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+            ..._methods.map((method) => RadioListTile<int>(
+                  value: method['value'] as int,
+                  groupValue: selectedMethod,
+                  onChanged: method['enabled'] ? (int? value) => setState(() => selectedMethod = value!) : null,
+                  title: Text(method['label'] as String),
+                )),
             const SizedBox(height: 12),
             _buildTextField("Tên cửa hàng", widget.storeName),
+            _buildTextField("Số tiền", _controller.formatCurrency(widget.totalAmount)),
             _buildTextField(
-                "Số tiền", _controller.formatCurrency(widget.totalAmount)),
-            _buildTextField("Ngày", widget.date),
+              "Ngày",
+              widget.date,
+              controller: dateController,
+              inputFormatters: [
+                FilteringTextInputFormatter.digitsOnly,
+                DateInputFormatter(),
+              ],
+            ),
             _buildTextField("Mô tả", widget.description),
             _buildTextField("Danh mục", widget.categoryname),
             const SizedBox(height: 16),
@@ -142,15 +123,11 @@ class _ScanExpensePageState extends State<ScanExpensePage> {
                 }
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color.fromARGB(255, 0, 0, 0),
-                minimumSize: Size(double.infinity, 50),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
+                backgroundColor: Colors.black,
+                minimumSize: const Size(double.infinity, 50),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ),
-              child: const Text("Lưu chi tiêu",
-                  style: TextStyle(
-                      color: Color.fromARGB(255, 255, 255, 255), fontSize: 16)),
+              child: const Text("Lưu chi tiêu", style: TextStyle(color: Colors.white, fontSize: 16)),
             ),
           ],
         ),
@@ -158,24 +135,31 @@ class _ScanExpensePageState extends State<ScanExpensePage> {
     );
   }
 }
-
 class DateInputFormatter extends TextInputFormatter {
   @override
   TextEditingValue formatEditUpdate(
       TextEditingValue oldValue, TextEditingValue newValue) {
-    String newText = newValue.text;
+    String digitsOnly = newValue.text.replaceAll(RegExp(r'\D'), ''); // Chỉ giữ lại số
 
-    if (newText.length > 2 && newText[2] != '/') {
-      newText = newText.substring(0, 2) + '/' + newText.substring(2);
+    if (digitsOnly.isEmpty) return newValue;
+
+    List<String> parts = [];
+
+    if (digitsOnly.length >= 2) {
+      parts.add(digitsOnly.substring(0, 2).padLeft(2, '0')); // Ngày
+    }
+    if (digitsOnly.length >= 4) {
+      parts.add(digitsOnly.substring(2, 4).padLeft(2, '0')); // Tháng
+    }
+    if (digitsOnly.length > 4) {
+      parts.add(digitsOnly.substring(4, digitsOnly.length.clamp(4, 8))); // Năm
     }
 
-    if (newText.length > 5 && newText[5] != '/') {
-      newText = newText.substring(0, 5) + '/' + newText.substring(5);
-    }
+    String formattedText = parts.join('/');
 
     return TextEditingValue(
-      text: newText,
-      selection: TextSelection.collapsed(offset: newText.length),
+      text: formattedText,
+      selection: TextSelection.collapsed(offset: formattedText.length),
     );
   }
 }
