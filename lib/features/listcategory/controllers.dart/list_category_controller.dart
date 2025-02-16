@@ -6,10 +6,19 @@ class ListCategoryController with ChangeNotifier {
   List<dynamic> expenses = [];
   bool isLoading = true;
   double totalSpent = 0.0;
+  http.Client? _httpClient;
+
+  // Setter để inject http.Client
+  set httpClient(http.Client client) {
+    _httpClient = client;
+  }
+
+  // Getter để sử dụng httpClient
+  http.Client get httpClient => _httpClient ?? http.Client();
 
   Future<void> fetchExpenses(String categoryId) async {
     try {
-      final response = await http.get(Uri.parse(
+      final response = await httpClient.get(Uri.parse(
           'https://backend-bdclpm.onrender.com/api/expenses/category/$categoryId'));
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
