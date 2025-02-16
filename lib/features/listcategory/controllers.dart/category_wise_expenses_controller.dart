@@ -11,6 +11,10 @@ class CategoryWiseExpensesController with ChangeNotifier {
   List<dynamic> get expensesData => _expensesData;
   bool get isLoading => _isLoading;
   String? get userId => _userId;
+  
+  set userId(String? value) {
+    _userId = value;
+  }
 
   Future<void> loadUserId() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();

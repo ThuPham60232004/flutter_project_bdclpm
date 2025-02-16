@@ -7,7 +7,11 @@ class IncomeController {
       "https://backend-bdclpm.onrender.com/api/gemini/income-command";
   String? userId;
   List<Map<String, String>> messages = [];
+   http.Client? httpClient;
+  SharedPreferences? sharedPreferences;
 
+  // Constructor để inject dependencies
+  IncomeController({this.httpClient, this.sharedPreferences});
   Future<void> loadUserId() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     userId = prefs.getString("userId");
