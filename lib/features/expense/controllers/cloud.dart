@@ -86,8 +86,6 @@ class CloudApi {
             response.textAnnotations!.isNotEmpty) {
           var text =
               response.textAnnotations!.first.description ?? 'No text found';
-
-          // Gửi dữ liệu đến backend
           var backendResponse = await _sendToBackend(text);
 
           return backendResponse;
