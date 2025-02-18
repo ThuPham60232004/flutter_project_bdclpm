@@ -9,6 +9,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
+
 @GenerateMocks([
   FirebaseAuth,
   GoogleSignIn,
@@ -21,6 +22,6 @@ import 'package:permission_handler/permission_handler.dart';
   SharedPreferences,
   stt.SpeechToText,
   NavigatorState,
-  Permission, 
+  Permission,
 ])
 void main() {}

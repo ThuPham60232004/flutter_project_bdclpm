@@ -17,74 +17,82 @@ void main() {
       context = FakeBuildContext();
     });
 
-testWidgets('selectOption updates selectedOption and navigates', (WidgetTester tester) async {
-  await tester.pumpWidget(
-    MaterialApp(
-      home: Builder(
-        builder: (context) {
-          return ElevatedButton(
-            onPressed: () {
-              controller.selectOption(context, TypePageController.manualvoice);
+    testWidgets('selectOption updates selectedOption and navigates',
+        (WidgetTester tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Builder(
+            builder: (context) {
+              return ElevatedButton(
+                onPressed: () {
+                  controller.selectOption(
+                      context, TypePageController.manualvoice);
+                },
+                child: Text('Test'),
+              );
             },
-            child: Text('Test'),
-          );
-        },
-      ),
-      routes: {'/manualvoice': (context) => Scaffold(body: Text('Next Page'))},
-    ),
-  );
+          ),
+          routes: {
+            '/manualvoice': (context) => Scaffold(body: Text('Next Page'))
+          },
+        ),
+      );
 
-  await tester.tap(find.byType(ElevatedButton));
-  await tester.pumpAndSettle();
+      await tester.tap(find.byType(ElevatedButton));
+      await tester.pumpAndSettle();
 
-  expect(find.text('Next Page'), findsOneWidget);
-});
-
+      expect(find.text('Next Page'), findsOneWidget);
+    });
 
     test('selectOption không cập nhật nếu newValue là null', () {
       controller.selectOption(context, null);
       expect(controller.selectedOption, isNull);
     });
 
-testWidgets('selectOption không điều hướng nếu newValue rỗng', (WidgetTester tester) async {
-  final controller = TypePageController();
+    testWidgets('selectOption không điều hướng nếu newValue rỗng',
+        (WidgetTester tester) async {
+      final controller = TypePageController();
 
-  await tester.pumpWidget(
-    MaterialApp(
-      routes: {
-        TypePageController.manualvoice: (context) => Scaffold(body: Text('Manual Voice Page')),
-        TypePageController.scan: (context) => Scaffold(body: Text('Scan Page')),
-        TypePageController.pdfexcel: (context) => Scaffold(body: Text('PDF/Excel Page')),
-      },
-      home: Builder(
-        builder: (context) {
-          return ElevatedButton(
-            onPressed: () {
-              controller.selectOption(context, '');
+      await tester.pumpWidget(
+        MaterialApp(
+          routes: {
+            TypePageController.manualvoice: (context) =>
+                Scaffold(body: Text('Manual Voice Page')),
+            TypePageController.scan: (context) =>
+                Scaffold(body: Text('Scan Page')),
+            TypePageController.pdfexcel: (context) =>
+                Scaffold(body: Text('PDF/Excel Page')),
+          },
+          home: Builder(
+            builder: (context) {
+              return ElevatedButton(
+                onPressed: () {
+                  controller.selectOption(context, '');
+                },
+                child: Text('Test'),
+              );
             },
-            child: Text('Test'),
-          );
-        },
-      ),
-    ),
-  );
+          ),
+        ),
+      );
 
-  await tester.tap(find.byType(ElevatedButton));
-  await tester.pumpAndSettle();
+      await tester.tap(find.byType(ElevatedButton));
+      await tester.pumpAndSettle();
 
-  expect(controller.selectedOption, isNull); 
-});
+      expect(controller.selectedOption, isNull);
+    });
 
-
-    testWidgets('selectOption ném lỗi nếu không có Navigator', (WidgetTester tester) async {
-      await tester.pumpWidget(MaterialApp(home: Container())); 
+    testWidgets('selectOption ném lỗi nếu không có Navigator',
+        (WidgetTester tester) async {
+      await tester.pumpWidget(MaterialApp(home: Container()));
 
       final BuildContext validContext = tester.element(find.byType(Container));
 
-      expect(() => controller.selectOption(validContext, TypePageController.manualvoice),
+      expect(
+          () => controller.selectOption(
+              validContext, TypePageController.manualvoice),
           throwsA(isA<FlutterError>()));
     });
-
   });
 }
 

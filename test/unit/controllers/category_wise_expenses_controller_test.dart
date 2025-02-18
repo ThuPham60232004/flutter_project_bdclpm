@@ -5,7 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:flutter_project_bdclpm/features/listcategory/controllers.dart/category_wise_expenses_controller.dart'; 
+import 'package:flutter_project_bdclpm/features/listcategory/controllers.dart/category_wise_expenses_controller.dart';
 import '../../mocks/mocks.mocks.dart';
 
 void main() {
@@ -69,7 +69,8 @@ void main() {
       // Arrange
       // Sử dụng setter công khai để thiết lập userId
       controller.userId = '123';
-      when(mockHttpClient.get(Uri.parse('https://backend-bdclpm.onrender.com/api/expenses/expenses-chart/123')))
+      when(mockHttpClient.get(Uri.parse(
+              'https://backend-bdclpm.onrender.com/api/expenses/expenses-chart/123')))
           .thenThrow(Exception('Failed to fetch expenses'));
 
       // Act

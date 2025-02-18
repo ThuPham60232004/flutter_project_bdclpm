@@ -14,79 +14,94 @@ void main() {
     mockController = MockPdfExcelController();
   });
 
-  // testWidgets('PdfExcelPage displays correct initial data', (WidgetTester tester) async {
-  //   await tester.pumpWidget(MaterialApp(
-  //     home: PdfExcelPage(),
-  //   ));
+  testWidgets('Trang PdfExcelPage hiển thị dữ liệu ban đầu đúng', (WidgetTester tester) async {
+    when(mockController.fetchCategories()).thenAnswer((_) async {});
 
-  //   expect(find.text('Xử lý PDF/Excel'), findsOneWidget);
-  //   expect(find.text('Tên cửa hàng'), findsOneWidget);
-  //   expect(find.text('Số tiền'), findsOneWidget);
-  //   expect(find.text('Ngày'), findsOneWidget);
-  //   expect(find.text('Mô tả'), findsOneWidget);
-  //   expect(find.text('Chọn danh mục'), findsOneWidget);
-  // });
+    await tester.pumpWidget(
+      MaterialApp(
+        home: ChangeNotifierProvider<PdfExcelController>.value(
+          value: mockController,
+          child: PdfExcelPage(),
+        ),
+      ));
 
-  // testWidgets('PdfExcelPage selects scan method correctly', (WidgetTester tester) async {
-  //   await tester.pumpWidget(MaterialApp(
-  //     home: PdfExcelPage(),
-  //   ));
+    await tester.pumpAndSettle();
 
-  //   await tester.tap(find.text('Quét PDF/Excel'));
-  //   await tester.pump();
+    expect(find.text('Xử lý PDF/Excel'), findsOneWidget);
+    expect(find.text('Tên cửa hàng'), findsOneWidget);
+    expect(find.text('Số tiền'), findsOneWidget);
+    expect(find.text('Ngày'), findsOneWidget);
+    expect(find.text('Mô tả'), findsOneWidget);
+    expect(find.text('Chọn danh mục'), findsOneWidget);
+  });
 
-  //   expect(find.text('Quét PDF/Excel'), findsOneWidget);
-  // });
+testWidgets('Trang PdfExcelPage chọn phương thức quét đúng', (WidgetTester tester) async {
+  // Mock controller để trả về dữ liệu giả cho fetchCategories
+  when(mockController.fetchCategories()).thenAnswer((_) async => ['Category 1', 'Category 2']);
 
-  // testWidgets('PdfExcelPage processes PDF file correctly', (WidgetTester tester) async {
-  //   when(mockController.pickPdfOrExcelFile()).thenAnswer((_) async => {});
+  await tester.pumpWidget(MaterialApp(
+    home: ChangeNotifierProvider<PdfExcelController>.value(
+      value: mockController,
+      child: PdfExcelPage(),
+    ),
+  ));
 
-  //   await tester.pumpWidget(MaterialApp(
-  //     home: PdfExcelPage(),
-  //   ));
+  await tester.pumpAndSettle(); // Đảm bảo mọi tác vụ bất đồng bộ đã hoàn thành
 
-  //   await tester.tap(find.text('Chọn Tệp'));
-  //   await tester.pump();
+  // Kiểm tra xem phương thức quét có được hiển thị đúng không
+  expect(find.text('Quét PDF/Excel'), findsOneWidget);
+});
 
-  //   verify(mockController.pickPdfOrExcelFile()).called(1);
-  // });
 
-  // testWidgets('PdfExcelPage shows error snackbar on PDF processing failure', (WidgetTester tester) async {
-  //   when(mockController.pickPdfOrExcelFile()).thenThrow(Exception('Test Error'));
+  testWidgets('Trang PdfExcelPage xử lý tệp PDF đúng', (WidgetTester tester) async {
+    when(mockController.pickPdfOrExcelFile()).thenAnswer((_) async => {});
 
-  //   await tester.pumpWidget(MaterialApp(
-  //     home: PdfExcelPage(),
-  //   ));
+    await tester.pumpWidget(MaterialApp(
+      home: PdfExcelPage(),
+    ));
 
-  //   await tester.tap(find.text('Chọn Tệp'));
-  //   await tester.pump();
+    await tester.tap(find.text('Chọn Tệp'));
+    await tester.pump();
 
-  //   expect(find.text('Lỗi: Test Error'), findsOneWidget);
-  // });
+    verify(mockController.pickPdfOrExcelFile()).called(1);
+  });
 
-  // testWidgets('PdfExcelPage saves expense correctly', (WidgetTester tester) async {
-  //   when(mockController.saveExpense()).thenAnswer((_) async => {});
+  testWidgets('Trang PdfExcelPage hiển thị snackbar lỗi khi xử lý PDF thất bại', (WidgetTester tester) async {
+    when(mockController.pickPdfOrExcelFile()).thenThrow(Exception('Test Error'));
 
-  //   await tester.pumpWidget(MaterialApp(
-  //     home: PdfExcelPage(),
-  //   ));
+    await tester.pumpWidget(MaterialApp(
+      home: PdfExcelPage(),
+    ));
 
-  //   await tester.tap(find.text('Lưu chi tiêu'));
-  //   await tester.pump();
+    await tester.tap(find.text('Chọn Tệp'));
+    await tester.pump();
 
-  //   verify(mockController.saveExpense()).called(1);
-  // });
+    expect(find.text('Lỗi: Test Error'), findsOneWidget);
+  });
 
-  // testWidgets('PdfExcelPage shows error snackbar on save expense failure', (WidgetTester tester) async {
-  //   when(mockController.saveExpense()).thenThrow(Exception('Test Error'));
+  testWidgets('Trang PdfExcelPage lưu chi tiêu đúng', (WidgetTester tester) async {
+    when(mockController.saveExpense()).thenAnswer((_) async => {});
 
-  //   await tester.pumpWidget(MaterialApp(
-  //     home: PdfExcelPage(),
-  //   ));
+    await tester.pumpWidget(MaterialApp(
+      home: PdfExcelPage(),
+    ));
 
-  //   await tester.tap(find.text('Lưu chi tiêu'));
-  //   await tester.pump();
+    await tester.tap(find.text('Lưu chi tiêu'));
+    await tester.pump();
 
-  //   expect(find.text('Đã xảy ra lỗi: Test Error'), findsOneWidget);
-  // });
+    verify(mockController.saveExpense()).called(1);
+  });
+
+  testWidgets('Trang PdfExcelPage hiển thị snackbar lỗi khi lưu chi tiêu thất bại', (WidgetTester tester) async {
+    when(mockController.saveExpense()).thenThrow(Exception('Test Error'));
+
+    await tester.pumpWidget(MaterialApp(
+      home: PdfExcelPage(),
+    ));
+
+    await tester.tap(find.text('Lưu chi tiêu'));
+    await tester.pump();
+
+    expect(find.text('Đã xảy ra lỗi: Test Error'), findsOneWidget);
+  });
 }

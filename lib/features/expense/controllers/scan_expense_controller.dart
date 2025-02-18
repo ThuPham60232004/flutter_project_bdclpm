@@ -115,8 +115,9 @@ class ScanExpenseController {
     }
   }
 
-  String formatCurrency(double amount) {
-    final NumberFormat formatter = NumberFormat.simpleCurrency(locale: 'vi_VN');
-    return formatter.format(amount);
-  }
+String formatCurrency(double amount) {
+  final NumberFormat formatter = NumberFormat("#,##0", "vi_VN");
+  return formatter.format(amount);
+}
+
 }
