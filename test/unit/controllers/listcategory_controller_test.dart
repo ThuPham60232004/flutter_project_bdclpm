@@ -2,7 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 import 'package:http/http.dart' as http;
-import 'package:flutter_project_bdclpm/features/listcategory/controllers.dart/list_category_controller.dart'; 
+import 'package:flutter_project_bdclpm/features/listcategory/controllers.dart/list_category_controller.dart';
 import '../../mocks/mocks.mocks.dart';
 
 @GenerateMocks([http.Client])
@@ -17,7 +17,8 @@ void main() {
       listCategoryController.httpClient = mockHttpClient; // Inject mock client
     });
 
-    test('fetchExpenses should update expenses and totalSpent on success', () async {
+    test('fetchExpenses should update expenses and totalSpent on success',
+        () async {
       // Mock response
       final mockResponse = '''
       [

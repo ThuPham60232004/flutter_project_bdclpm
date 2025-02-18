@@ -11,7 +11,6 @@ class _IncomeScreenState extends State<IncomeScreen> {
   final IncomeController _controller = IncomeController();
 
   @override
-
   void initState() {
     super.initState();
     _controller.loadUserId();

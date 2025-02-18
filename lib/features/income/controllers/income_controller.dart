@@ -7,7 +7,7 @@ class IncomeController {
       "https://backend-bdclpm.onrender.com/api/gemini/income-command";
   String? userId;
   List<Map<String, String>> messages = [];
-   http.Client? httpClient;
+  http.Client? httpClient;
   SharedPreferences? sharedPreferences;
 
   // Constructor để inject dependencies

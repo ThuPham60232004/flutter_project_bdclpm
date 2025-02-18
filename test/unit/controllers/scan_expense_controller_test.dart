@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 import 'package:flutter_project_bdclpm/features/expense/controllers/scan_expense_controller.dart';
 import 'package:flutter_project_bdclpm/features/expense/presentation/scan_expense_page.dart';
-
+import '../../mocks/mocks.mocks.dart';
 class MockScanExpenseController extends Mock implements ScanExpenseController {}
 
 void main() {
@@ -25,13 +25,11 @@ void main() {
       ),
     ));
 
-    await tester.pumpAndSettle(); // Đợi UI cập nhật xong
-
-    debugDumpApp(); // Debug UI nếu cần
-
+    await tester.pumpAndSettle(); 
+    debugDumpApp(); 
     expect(find.text('Cửa hàng A'), findsOneWidget);
     expect(
-        find.textContaining('100'), findsOneWidget); // Tìm số 100 bất kể format
+        find.textContaining('100'), findsOneWidget);
     expect(find.text('01/01/2023'), findsOneWidget);
     expect(find.text('Mô tả test'), findsOneWidget);
     expect(find.text('Danh mục A'), findsOneWidget);
@@ -75,63 +73,6 @@ void main() {
     final textField = tester.widget<TextFormField>(dateField);
     expect(textField.controller!.text, '01/01/2023');
   });
-
-  // testWidgets('Gọi hàm createExpense khi nhấn Lưu chi tiêu',
-  //     (WidgetTester tester) async {
-  //   when(mockController.createExpense(
-  //     storeName: 'Cửa hàng A',
-  //     totalAmount: 100.0,
-  //     description: 'Mô tả test',
-  //     date: '01/01/2023',
-  //     categoryId: '1',
-  //   )).thenAnswer((_) async => {});
-
-  //   await tester.pumpWidget(MaterialApp(
-  //     home: ScanExpensePage(
-  //       storeName: 'Cửa hàng A',
-  //       totalAmount: 100.0,
-  //       description: 'Mô tả test',
-  //       date: '01/01/2023',
-  //       categoryId: '1',
-  //       categoryname: 'Danh mục A',
-  //     ),
-  //   ));
-
-  //   await tester.tap(find.text('Lưu chi tiêu'));
-  //   await tester.pump();
-
-  //   verify(mockController.createExpense(
-  //     storeName: 'Cửa hàng A',
-  //     totalAmount: 100.0,
-  //     description: 'Mô tả test',
-  //     date: '01/01/2023',
-  //     categoryId: '1',
-  //   )).called(1);
-  // });
-
-  // testWidgets('Hiển thị thông báo lỗi khi tạo chi tiêu thất bại',
-  //     (WidgetTester tester) async {
-  //   when(mockController.createExpense(
-  //     storeName: 'Cửa hàng A',
-  //     totalAmount: 100.0,
-  //     description: 'Mô tả test',
-  //     date: '01/01/2023',
-  //     categoryId: '1',
-  //   )).thenAnswer((_) async => throw Exception('Lỗi test'));
-  //   await tester.pumpWidget(MaterialApp(
-  //     home: ScanExpensePage(
-  //       storeName: 'Cửa hàng A',
-  //       totalAmount: 100.0,
-  //       description: 'Mô tả test',
-  //       date: '01/01/2023',
-  //       categoryId: '1',
-  //       categoryname: 'Danh mục A',
-  //     ),
-  //   ));
-
-  //   await tester.tap(find.text('Lưu chi tiêu'));
-  //   await tester.pump();
-
-  //   expect(find.text('Lỗi: Lỗi test'), findsOneWidget);
-  // });
+  // Gọi hàm createExpense khi nhấn Lưu chi tiêu
+  //Hiển thị thông báo lỗi khi tạo chi tiêu thất bại
 }
