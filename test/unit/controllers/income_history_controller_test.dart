@@ -53,52 +53,34 @@ void main() {
     // });
 
     test('deleteIncome throws an exception when the http call fails', () async {
-      // Mock the HTTP call to return a failed response
       when(mockClient.delete(Uri.parse('${incomeController.baseUrl}1')))
           .thenAnswer((_) async => http.Response('Not Found', 404));
-
-      // Verify that the method throws an exception
       expect(() => incomeController.deleteIncome('1'), throwsException);
     });
 
     test('calculateTotalIncome returns the correct total income', () {
-      // Prepare test data
       final incomes = [
         {'id': '1', 'amount': 100},
         {'id': '2', 'amount': 200},
         {'id': '3', 'amount': 300},
       ];
-
-      // Call the method under test
       final totalIncome = incomeController.calculateTotalIncome(incomes);
-
-      // Verify the result
       expect(totalIncome, 600);
     });
 
     test('calculateTotalIncome returns 0 when the list is empty', () {
-      // Prepare test data
       final incomes = [];
-
-      // Call the method under test
       final totalIncome = incomeController.calculateTotalIncome(incomes);
-
-      // Verify the result
       expect(totalIncome, 0);
     });
 
     test('calculateTotalIncome handles null amounts correctly', () {
-      // Prepare test data
       final incomes = [
         {'id': '1', 'amount': 100},
         {'id': '2', 'amount': null},
         {'id': '3', 'amount': 300},
       ];
-
-      // Call the method under test
       final totalIncome = incomeController.calculateTotalIncome(incomes);
-
-      // Verify the result
       expect(totalIncome, 400);
     });
   });

@@ -26,7 +26,8 @@ void main() {
       expect(userId, '12345');
     });
 
-    test('returns empty string if userId is not in SharedPreferences', () async {
+    test('returns empty string if userId is not in SharedPreferences',
+        () async {
       // Mock SharedPreferences
       SharedPreferences.setMockInitialValues({});
 
@@ -67,7 +68,8 @@ void main() {
           'startBudgetDate': '2023-10-01T00:00:00.000Z',
           'endBudgetDate': '2023-10-10T00:00:00.000Z',
         }),
-      )).thenAnswer((_) async => http.Response('{"isOverlapping": false}', 200));
+      )).thenAnswer(
+          (_) async => http.Response('{"isOverlapping": false}', 200));
 
       final isOverlapping = await controller.isOverlapping(
         '12345',
@@ -149,7 +151,8 @@ void main() {
   });
 
   group('fetchBudgets', () {
-    test('returns a map of events if budgets are fetched successfully', () async {
+    test('returns a map of events if budgets are fetched successfully',
+        () async {
       // Mock SharedPreferences
       SharedPreferences.setMockInitialValues({'userId': '12345'});
 
