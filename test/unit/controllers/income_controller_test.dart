@@ -1,14 +1,9 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_project_bdclpm/features/income/controllers/income_controller.dart'; // Điều chỉnh import theo project của bạn
-import 'package:mockito/mockito.dart';
-import 'package:mockito/annotations.dart';
+import 'package:flutter_project_bdclpm/features/income/controllers/income_controller.dart';
 import 'package:mockito/mockito.dart';
 import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
 import '../../mocks/mocks.mocks.dart';
 
-@GenerateMocks([http.Client, SharedPreferences])
 void main() {
   group('IncomeController', () {
     late IncomeController incomeController;
@@ -57,13 +52,16 @@ void main() {
     //   expect(incomeController.getMessages()[0]["text"], "Hello");
     // });
 
-    // test('sendMessage should add bot response to messages list on success', () async {
+    // test('sendMessage should add bot response to messages list on success',
+    //     () async {
     //   incomeController.userId = "12345";
     //   when(mockHttpClient.post(
-    //     Uri.parse("https://backend-bdclpm.onrender.com/api/gemini/income-command"),
+    //     Uri.parse(
+    //         "https://backend-bdclpm.onrender.com/api/gemini/income-command"),
     //     headers: anyNamed("headers"),
     //     body: anyNamed("body"),
-    //   )).thenAnswer((_) async => http.Response('{"message": "Hi there!"}', 200));
+    //   )).thenAnswer(
+    //       (_) async => http.Response('{"message": "Hi there!"}', 200));
 
     //   await incomeController.sendMessage("Hello");
 
@@ -72,10 +70,12 @@ void main() {
     //   expect(incomeController.getMessages()[1]["text"], "Hi there!");
     // });
 
-    // test('sendMessage should add error message to messages list on failure', () async {
+    // test('sendMessage should add error message to messages list on failure',
+    //     () async {
     //   incomeController.userId = "12345";
     //   when(mockHttpClient.post(
-    //     Uri.parse("https://backend-bdclpm.onrender.com/api/gemini/income-command"),
+    //     Uri.parse(
+    //         "https://backend-bdclpm.onrender.com/api/gemini/income-command"),
     //     headers: anyNamed("headers"),
     //     body: anyNamed("body"),
     //   )).thenAnswer((_) async => http.Response('{}', 500));
@@ -84,7 +84,8 @@ void main() {
 
     //   expect(incomeController.getMessages().length, 2);
     //   expect(incomeController.getMessages()[1]["sender"], "bot");
-    //   expect(incomeController.getMessages()[1]["text"], "Chatbot gặp lỗi, vui lòng thử lại!");
+    //   expect(incomeController.getMessages()[1]["text"],
+    //       "Chatbot gặp lỗi, vui lòng thử lại!");
     // });
   });
 }

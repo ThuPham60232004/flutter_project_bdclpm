@@ -3,16 +3,23 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 class CreateBudgetController {
+  final http.Client httpClient;
+  final SharedPreferences sharedPreferences;
+
+  CreateBudgetController({
+    required this.httpClient,
+    required this.sharedPreferences,
+  });
+
   Future<String> getUserId() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    return prefs.getString('userId') ?? '';
+    return sharedPreferences.getString('userId') ?? '';
   }
 
   Future<bool> isOverlapping(
       String userId, DateTime startBudgetDate, DateTime endBudgetDate) async {
     final url = 'https://backend-bdclpm.onrender.com/api/budgets/';
 
-    final response = await http.post(
+    final response = await httpClient.post(
       Uri.parse(url),
       headers: {'Content-Type': 'application/json'},
       body: json.encode({
@@ -34,7 +41,7 @@ class CreateBudgetController {
       DateTime startBudgetDate, DateTime endBudgetDate) async {
     final url = 'https://backend-bdclpm.onrender.com/api/budgets';
 
-    final response = await http.post(
+    final response = await httpClient.post(
       Uri.parse(url),
       headers: {'Content-Type': 'application/json'},
       body: json.encode({
@@ -51,7 +58,7 @@ class CreateBudgetController {
   Future<Map<DateTime, List>> fetchBudgets() async {
     String userId = await getUserId();
     final url = 'https://backend-bdclpm.onrender.com/api/budgets/$userId';
-    final response = await http.get(Uri.parse(url));
+    final response = await httpClient.get(Uri.parse(url));
 
     if (response.statusCode == 200) {
       final List budgets = json.decode(response.body);
@@ -67,7 +74,6 @@ class CreateBudgetController {
           events.putIfAbsent(date, () => []).add('Budget');
         }
       }
-
       return events;
     } else {
       return {};

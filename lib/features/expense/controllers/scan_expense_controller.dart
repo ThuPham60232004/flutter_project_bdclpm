@@ -18,6 +18,9 @@ class ScanExpenseController {
   String? imageUrl;
 
   final picker = ImagePicker();
+  set setImagePicker(ImagePicker picker) {
+    picker = picker;
+  }
 
   Future<void> loadUserId() async {
     final prefs = await SharedPreferences.getInstance();
@@ -115,9 +118,8 @@ class ScanExpenseController {
     }
   }
 
-String formatCurrency(double amount) {
-  final NumberFormat formatter = NumberFormat("#,##0", "vi_VN");
-  return formatter.format(amount);
-}
-
+  String formatCurrency(double amount) {
+    final NumberFormat formatter = NumberFormat("#,##0", "vi_VN");
+    return formatter.format(amount);
+  }
 }

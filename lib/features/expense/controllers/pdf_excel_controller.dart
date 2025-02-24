@@ -8,7 +8,7 @@ import 'package:excel/excel.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 
-class PdfExcelController extends ChangeNotifier{
+class PdfExcelController extends ChangeNotifier {
   final TextEditingController storeNameController = TextEditingController();
   final TextEditingController amountController = TextEditingController();
   final TextEditingController dateController = TextEditingController();

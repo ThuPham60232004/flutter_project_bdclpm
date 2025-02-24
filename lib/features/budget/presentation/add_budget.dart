@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:flutter_project_bdclpm/features/budget/controllers/create_budget_controller.dart';
+import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 class CreateBudgetScreen extends StatefulWidget {
   @override
@@ -11,14 +13,22 @@ class CreateBudgetScreen extends StatefulWidget {
 class _CreateBudgetScreenState extends State<CreateBudgetScreen> {
   final _amountController = TextEditingController();
   DateTime _startBudgetDate = DateTime.now();
-  DateTime _endBudgetDate = DateTime.now().add(Duration(days: 30));
-  final CreateBudgetController _controller = CreateBudgetController();
+  DateTime _endBudgetDate = DateTime.now().add(const Duration(days: 30));
+  late CreateBudgetController _controller;
   Map<DateTime, List> _events = {};
 
   @override
   void initState() {
     super.initState();
-    _loadBudgets();
+    _initializeController();
+  }
+
+  Future<void> _initializeController() async {
+    _controller = CreateBudgetController(
+      httpClient: http.Client(),
+      sharedPreferences: await SharedPreferences.getInstance(),
+    );
+    await _loadBudgets();
   }
 
   Future<void> _loadBudgets() async {

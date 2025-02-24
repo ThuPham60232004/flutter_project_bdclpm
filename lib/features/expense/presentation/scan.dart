@@ -224,7 +224,6 @@ class _ScanPageState extends State<ScanPage> {
                   ),
                 ),
               ),
-              
               const SizedBox(height: 16),
               ElevatedButton.icon(
                 onPressed: () {
@@ -245,9 +244,7 @@ class _ScanPageState extends State<ScanPage> {
                         categoryname:
                             extractedData['data']['category']['name'] ?? '',
                         currency: extractedData['data']['currency'] ?? 'VND',
-                        
                       ),
-                      
                     ),
                   );
                 },

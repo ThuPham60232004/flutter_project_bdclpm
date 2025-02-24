@@ -3,6 +3,9 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 class BudgetCalendarController {
+  final http.Client httpClient;
+
+  BudgetCalendarController({required this.httpClient});
   final String baseUrl = 'https://backend-bdclpm.onrender.com';
 
   Future<String?> getUserId() async {
@@ -15,10 +18,15 @@ class BudgetCalendarController {
     try {
       final url = Uri.parse(
           '$baseUrl/api/budgets/check-budget-limit/$userId/$budgetId');
-      final response = await http.get(url);
-      final data = jsonDecode(response.body);
+      final response = await httpClient.get(url);
 
       if (response.statusCode == 200 || response.statusCode == 400) {
+        if (response.body.isEmpty) {
+          throw Exception('Phản hồi từ server rỗng');
+        }
+
+        final data = jsonDecode(response.body);
+
         if (!data.containsKey('startBudgetDate') ||
             !data.containsKey('endBudgetDate') ||
             !data.containsKey('budgetAmount')) {

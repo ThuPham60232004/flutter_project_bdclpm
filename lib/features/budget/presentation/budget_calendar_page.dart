@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_project_bdclpm/features/budget/controllers/budget_calendar_controller.dart';
 import 'package:table_calendar/table_calendar.dart';
+import 'package:http/http.dart' as http;
 
 class BudgetCalendarPage extends StatefulWidget {
   final Map<String, dynamic> budget;
@@ -13,7 +14,9 @@ class BudgetCalendarPage extends StatefulWidget {
 }
 
 class _BudgetCalendarPageState extends State<BudgetCalendarPage> {
-  final BudgetCalendarController _controller = BudgetCalendarController();
+  final BudgetCalendarController _controller = BudgetCalendarController(
+    httpClient: http.Client(),
+  );
   String _message = '';
   bool _isOverBudget = false;
   double _totalExpenses = 0.0;

@@ -1,75 +1,59 @@
 import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:http/http.dart' as http;
 import 'package:mockito/mockito.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:flutter_project_bdclpm/features/budget/controllers/budget_calendar_controller.dart';
-
-// Mock classes
-class MockClient extends Mock implements http.Client {}
+import 'package:http/http.dart' as http;
+import 'package:flutter_project_bdclpm/features/budget/controllers/budget_controller.dart';
+import '../../mocks/mocks.mocks.dart';
 
 void main() {
-  TestWidgetsFlutterBinding.ensureInitialized(); // Khởi tạo binding
-  group('BudgetCalendarController', () {
-    late BudgetCalendarController controller;
-    late MockClient mockHttpClient;
-    final String baseUrl = 'https://backend-bdclpm.onrender.com';
+  group('BudgetController', () {
+    late MockClient mockClient;
+    late BudgetController controller;
 
     setUp(() {
-      mockHttpClient = MockClient();
-      controller = BudgetCalendarController();
-
-      // Mock SharedPreferences
-      SharedPreferences.setMockInitialValues({
-        'userId': '12345', // Mock giá trị cho 'userId'
-      });
+      mockClient = MockClient();
+      controller = BudgetController(httpClient: mockClient);
     });
 
-    test('getUserId returns userId from SharedPreferences', () async {
-      final userId = await controller.getUserId();
-      expect(userId, '12345');
+    test('fetchBudgets trả về danh sách ngân sách khi statusCode = 200',
+        () async {
+      // Mock response thành công
+      when(mockClient.get(
+        Uri.parse('https://backend-bdclpm.onrender.com/api/budgets/'),
+        headers: {'Content-Type': 'application/json'},
+      )).thenAnswer((_) async => http.Response(
+            jsonEncode([
+              {'id': 1, 'name': 'Ngân sách 1'},
+              {'id': 2, 'name': 'Ngân sách 2'},
+            ]),
+            200,
+            headers: {'Content-Type': 'application/json'},
+          ));
+
+      final budgets = await controller.fetchBudgets();
+
+      expect(budgets.length, 2);
+      expect(budgets[0]['name'], 'Ngân sách 1');
     });
 
-    // test('checkBudgetLimit returns valid data on successful response', () async {
-    //   final mockResponse = {
-    //     'startBudgetDate': '2023-10-01',
-    //     'endBudgetDate': '2023-10-31',
-    //     'budgetAmount': 1000.0
-    //   };
-    //   final url = Uri.parse('$baseUrl/api/budgets/check-budget-limit/12345/budget123');
+    test('fetchBudgets ném lỗi khi statusCode khác 200', () async {
+      // Mock response lỗi 500
+      when(mockClient.get(
+        Uri.parse('https://backend-bdclpm.onrender.com/api/budgets/'),
+        headers: {'Content-Type': 'application/json'},
+      )).thenAnswer((_) async => http.Response('Lỗi server', 500));
 
-    //   // Thiết lập hành vi cho mockHttpClient
-    //   when(mockHttpClient.get(url)).thenAnswer((_) async =>
-    //       http.Response(jsonEncode(mockResponse), 200));
+      expect(() async => await controller.fetchBudgets(), throwsException);
+    });
 
-    //   final result = await controller.checkBudgetLimit('12345', 'budget123');
-    //   expect(result, mockResponse);
-    // });
+    test('fetchBudgets ném lỗi khi gặp lỗi network', () async {
+      // Mock lỗi mạng
+      when(mockClient.get(
+        Uri.parse('https://backend-bdclpm.onrender.com/api/budgets/'),
+        headers: {'Content-Type': 'application/json'},
+      )).thenThrow(Exception('Network Error'));
 
-    // test('checkBudgetLimit throws exception on invalid data', () async {
-    //   final mockResponse = {
-    //     'startBudgetDate': '2023-10-01',
-    //     // Missing 'endBudgetDate' and 'budgetAmount'
-    //   };
-    //   final url = Uri.parse('$baseUrl/api/budgets/check-budget-limit/12345/budget123');
-
-    //   // Thiết lập hành vi cho mockHttpClient
-    //   when(mockHttpClient.get(url)).thenAnswer((_) async =>
-    //       http.Response(jsonEncode(mockResponse), 200));
-
-    //   expect(() async => await controller.checkBudgetLimit('12345', 'budget123'),
-    //       throwsA(isA<Exception>()));
-    // });
-
-    // test('checkBudgetLimit throws exception on server error', () async {
-    //   final url = Uri.parse('$baseUrl/api/budgets/check-budget-limit/12345/budget123');
-
-    //   // Thiết lập hành vi cho mockHttpClient
-    //   when(mockHttpClient.get(url)).thenAnswer((_) async =>
-    //       http.Response('Error', 500));
-
-    //   expect(() async => await controller.checkBudgetLimit('12345', 'budget123'),
-    //       throwsA(isA<Exception>()));
-    // });
+      expect(() async => await controller.fetchBudgets(), throwsException);
+    });
   });
 }

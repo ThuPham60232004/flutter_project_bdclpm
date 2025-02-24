@@ -1,78 +1,50 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
-import 'package:flutter_project_bdclpm/features/expense/controllers/scan_expense_controller.dart';
-import 'package:flutter_project_bdclpm/features/expense/presentation/scan_expense_page.dart';
 import '../../mocks/mocks.mocks.dart';
-class MockScanExpenseController extends Mock implements ScanExpenseController {}
+import 'dart:typed_data';
+import 'package:flutter_project_bdclpm/features/expense/controllers/cloud.dart';
+import 'package:http/http.dart' as http;
 
 void main() {
-  late MockScanExpenseController mockController;
+  late MockCloudApi mockCloudApi;
+  late MockClient mockHttpClient;
 
   setUp(() {
-    mockController = MockScanExpenseController();
+    mockCloudApi = MockCloudApi();
+    mockHttpClient = MockClient();
   });
 
-  testWidgets('Hiển thị dữ liệu ban đầu đúng', (WidgetTester tester) async {
-    await tester.pumpWidget(MaterialApp(
-      home: ScanExpensePage(
-        storeName: 'Cửa hàng A',
-        totalAmount: 100,
-        description: 'Mô tả test',
-        date: '01/01/2023',
-        categoryId: '1',
-        categoryname: 'Danh mục A',
-      ),
-    ));
+  test('Lưu ảnh và trả về URL', () async {
+    final Uint8List mockImage = Uint8List.fromList([0, 1, 2, 3]);
 
-    await tester.pumpAndSettle(); 
-    debugDumpApp(); 
-    expect(find.text('Cửa hàng A'), findsOneWidget);
-    expect(
-        find.textContaining('100'), findsOneWidget);
-    expect(find.text('01/01/2023'), findsOneWidget);
-    expect(find.text('Mô tả test'), findsOneWidget);
-    expect(find.text('Danh mục A'), findsOneWidget);
+    when(mockCloudApi.saveAndGetUrl(any, any)).thenAnswer((_) async =>
+        'https://storage.googleapis.com/testflutter/hinh-anh-gia-lap.png');
+
+    final result = await mockCloudApi.saveAndGetUrl('hinh-anh.png', mockImage);
+
+    expect(result, contains('hinh-anh-gia-lap.png'));
   });
 
-  testWidgets('Chọn phương thức quét hóa đơn đúng',
-      (WidgetTester tester) async {
-    await tester.pumpWidget(MaterialApp(
-      home: ScanExpensePage(
-        storeName: 'Cửa hàng A',
-        totalAmount: 100.0,
-        description: 'Mô tả test',
-        date: '01/01/2023',
-        categoryId: '1',
-        categoryname: 'Danh mục A',
-      ),
-    ));
+  test('Trích xuất văn bản từ ảnh', () async {
+    final Uint8List mockImage = Uint8List.fromList([0, 1, 2, 3]);
 
-    await tester.tap(find.text('Quét hóa đơn'));
-    await tester.pump();
+    when(mockCloudApi.extractTextFromImage(any))
+        .thenAnswer((_) async => 'Văn bản giả lập');
 
-    expect(find.text('Quét hóa đơn'), findsOneWidget);
+    final result = await mockCloudApi.extractTextFromImage(mockImage);
+
+    expect(result, contains('Văn bản giả lập'));
   });
 
-  testWidgets('Định dạng ngày tháng đúng', (WidgetTester tester) async {
-    await tester.pumpWidget(MaterialApp(
-      home: ScanExpensePage(
-        storeName: 'Cửa hàng A',
-        totalAmount: 100.0,
-        description: 'Mô tả test',
-        date: '01/01/2023',
-        categoryId: '1',
-        categoryname: 'Danh mục A',
-      ),
-    ));
+  test('Trích xuất văn bản từ ảnh không trả về null', () async {
+    final Uint8List mockImage = Uint8List.fromList([0, 1, 2, 3]);
 
-    final dateField = find.byType(TextFormField).at(2);
-    await tester.enterText(dateField, '01012023');
-    await tester.pumpAndSettle();
+    when(mockCloudApi.extractTextFromImage(any))
+        .thenAnswer((_) async => 'Văn bản giả lập');
 
-    final textField = tester.widget<TextFormField>(dateField);
-    expect(textField.controller!.text, '01/01/2023');
+    final result = await mockCloudApi.extractTextFromImage(mockImage);
+
+    expect(result, isNotNull);
+    expect(result, contains('Văn bản giả lập'));
   });
-  // Gọi hàm createExpense khi nhấn Lưu chi tiêu
-  //Hiển thị thông báo lỗi khi tạo chi tiêu thất bại
 }

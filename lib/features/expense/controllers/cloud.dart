@@ -86,7 +86,7 @@ class CloudApi {
             response.textAnnotations!.isNotEmpty) {
           var text =
               response.textAnnotations!.first.description ?? 'No text found';
-          var backendResponse = await _sendToBackend(text);
+          var backendResponse = await sendToBackend(text);
 
           return backendResponse;
         } else {
@@ -109,7 +109,7 @@ class CloudApi {
     }
   }
 
-  Future<String> _sendToBackend(String extractedText) async {
+  Future<String> sendToBackend(String extractedText) async {
     final url =
         Uri.parse('https://backend-bdclpm.onrender.com/api/gemini/process');
     try {

@@ -81,11 +81,10 @@ class _ScanExpensePageState extends State<ScanExpensePage> {
     );
   }
 
-double parseAmount(String amount) {
-  String cleanedAmount = amount.replaceAll('.', '').replaceAll(',', '.');
-  return double.tryParse(cleanedAmount) ?? 0.0;
-}
-
+  double parseAmount(String amount) {
+    String cleanedAmount = amount.replaceAll('.', '').replaceAll(',', '.');
+    return double.tryParse(cleanedAmount) ?? 0.0;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -149,18 +148,20 @@ double parseAmount(String amount) {
                   child: Text('USD'),
                 ),
               ],
-            onChanged: (currency) {
-              setState(() {
-                selectedCurrency = currency ?? 'VND';
-                double totalAmount = parseAmount(amountController.text);
-                if (selectedCurrency == 'VND') {
-                  double convertedAmount = totalAmount * 23000;
-                  amountController.text = NumberFormat("#,##0", "vi_VN").format(convertedAmount);
-                } else {
-                  amountController.text = NumberFormat("#,##0.00", "en_US").format(totalAmount);
-                }
-              });
-            },
+              onChanged: (currency) {
+                setState(() {
+                  selectedCurrency = currency ?? 'VND';
+                  double totalAmount = parseAmount(amountController.text);
+                  if (selectedCurrency == 'VND') {
+                    double convertedAmount = totalAmount * 23000;
+                    amountController.text =
+                        NumberFormat("#,##0", "vi_VN").format(convertedAmount);
+                  } else {
+                    amountController.text =
+                        NumberFormat("#,##0.00", "en_US").format(totalAmount);
+                  }
+                });
+              },
             ),
             const SizedBox(height: 16),
             ElevatedButton(
@@ -173,7 +174,9 @@ double parseAmount(String amount) {
                   }
                   await _controller.createExpense(
                     storeName: widget.storeName,
-                    totalAmount: double.parse(amountController.text.replaceAll('.', '').replaceAll(',', '.')),
+                    totalAmount: double.parse(amountController.text
+                        .replaceAll('.', '')
+                        .replaceAll(',', '.')),
                     description: widget.description,
                     date: widget.date,
                     categoryId: widget.categoryId,

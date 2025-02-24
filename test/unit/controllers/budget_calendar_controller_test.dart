@@ -1,152 +1,137 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 import 'package:flutter_project_bdclpm/features/budget/controllers/budget_calendar_controller.dart';
-import 'package:flutter_project_bdclpm/features/budget/presentation/budget_calendar_page.dart';
 import '../../mocks/mocks.mocks.dart';
-
-class MockBudgetCalendarController extends Mock
-    implements BudgetCalendarController {}
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
+import '../../test_config.dart';
 
 void main() {
-  late MockBudgetCalendarController mockController;
+  setupTestEnvironment();
+  late BudgetCalendarController budgetController;
+  late MockSharedPreferences mockSharedPreferences;
+  late MockClient mockHttpClient;
 
   setUp(() {
-    mockController = MockBudgetCalendarController();
+    mockHttpClient = MockClient();
+    budgetController = BudgetCalendarController(httpClient: mockHttpClient);
+    mockSharedPreferences = MockSharedPreferences();
   });
 
-  group('BudgetCalendarPage', () {
-    testWidgets('should display budget information correctly',
-        (WidgetTester tester) async {
-      final budget = {
-        '_id': '1',
-        'amount': 1000000,
-        'startBudgetDate': '2023-10-01T00:00:00.000Z',
-        'endBudgetDate': '2023-10-31T00:00:00.000Z',
-      };
+  group('BudgetCalendarController', () {
+    test('getUserId trả về đúng userId từ SharedPreferences', () async {
+      when(mockSharedPreferences.getString('userId'))
+          .thenReturn('test_user_id');
 
-      when(mockController.getUserId()).thenAnswer((_) async => 'user1');
-      when(mockController.checkBudgetLimit('user1', '1'))
-          .thenAnswer((_) async => {
-                'message': 'Ngân sách hợp lệ',
-                'status': 'valid',
-                'totalExpenses': 500000,
-                'expenses': [],
-              });
+      SharedPreferences.setMockInitialValues({'userId': 'test_user_id'});
 
-      await tester.pumpWidget(MaterialApp(
-        home: BudgetCalendarPage(budget: budget),
-      ));
+      final userId = await budgetController.getUserId();
 
-      await tester.pumpAndSettle();
-
-      expect(find.text('Ngân sách: ₫1,000,000'), findsOneWidget);
-      expect(find.text('Thời gian: 01/10/2023 - 31/10/2023'), findsOneWidget);
-      expect(find.text('Ngân sách hợp lệ'), findsOneWidget);
-      expect(find.text('Tổng chi tiêu: ₫500,000'), findsOneWidget);
+      expect(userId, 'test_user_id');
     });
 
-    testWidgets('should display error message when userId is null',
-        (WidgetTester tester) async {
-      final budget = {
-        '_id': '1',
-        'amount': 1000000,
-        'startBudgetDate': '2023-10-01T00:00:00.000Z',
-        'endBudgetDate': '2023-10-31T00:00:00.000Z',
+    test('Kiểm tra ngân sách thành công khi status code là 200', () async {
+      final userId = 'test_user_id';
+      final budgetId = 'test_budget_id';
+
+      final mockResponse = {
+        'startBudgetDate': '2023-01-01',
+        'endBudgetDate': '2023-12-31',
+        'budgetAmount': 1000
       };
 
-      when(mockController.getUserId()).thenAnswer((_) async => null);
+      final expectedUrl = Uri.parse(
+          'https://backend-bdclpm.onrender.com/api/budgets/check-budget-limit/$userId/$budgetId');
 
-      await tester.pumpWidget(MaterialApp(
-        home: BudgetCalendarPage(budget: budget),
-      ));
+      when(mockHttpClient.get(expectedUrl, headers: anyNamed('headers')))
+          .thenAnswer(
+              (_) async => http.Response(jsonEncode(mockResponse), 200));
 
-      await tester.pumpAndSettle();
+      final result = await budgetController.checkBudgetLimit(userId, budgetId);
 
-      expect(find.text('Không tìm thấy userId!'), findsOneWidget);
+      expect(result, mockResponse);
     });
 
-    testWidgets('should display error message when API call fails',
-        (WidgetTester tester) async {
-      final budget = {
-        '_id': '1',
-        'amount': 1000000,
-        'startBudgetDate': '2023-10-01T00:00:00.000Z',
-        'endBudgetDate': '2023-10-31T00:00:00.000Z',
-      };
+    test('Ném Exception khi server trả về mã trạng thái khác 200 hoặc 400',
+        () async {
+      final userId = 'test_user_id';
+      final budgetId = 'test_budget_id';
 
-      when(mockController.getUserId()).thenAnswer((_) async => 'user1');
-      when(mockController.checkBudgetLimit('user1', '1'))
-          .thenThrow(Exception('API Error'));
+      when(mockHttpClient.get(any)).thenAnswer(
+        (_) async => http.Response('Lỗi server', 500),
+      );
 
-      await tester.pumpWidget(MaterialApp(
-        home: BudgetCalendarPage(budget: budget),
-      ));
-
-      await tester.pumpAndSettle();
-
-      expect(find.text('Lỗi khi tải dữ liệu: Exception: API Error'),
-          findsOneWidget);
+      expect(
+        () async => await budgetController.checkBudgetLimit(userId, budgetId),
+        throwsA(isA<Exception>()),
+      );
     });
 
-    testWidgets(
-        'should display budget is invalid when current date is outside budget range',
-        (WidgetTester tester) async {
-      final budget = {
-        '_id': '1',
-        'amount': 1000000,
-        'startBudgetDate': '2023-09-01T00:00:00.000Z',
-        'endBudgetDate': '2023-09-30T00:00:00.000Z',
-      };
+    test('Ném Exception khi dữ liệu từ server thiếu các trường bắt buộc',
+        () async {
+      final userId = 'test_user_id';
+      final budgetId = 'test_budget_id';
 
-      when(mockController.getUserId()).thenAnswer((_) async => 'user1');
-      when(mockController.checkBudgetLimit('user1', '1'))
-          .thenAnswer((_) async => {
-                'message': 'Ngân sách hợp lệ',
-                'status': 'valid',
-                'totalExpenses': 500000,
-                'expenses': [],
-              });
+      final mockInvalidResponse = {'invalidField': 'invalidData'};
 
-      await tester.pumpWidget(MaterialApp(
-        home: BudgetCalendarPage(budget: budget),
-      ));
+      when(mockHttpClient.get(any)).thenAnswer(
+        (_) async => http.Response(jsonEncode(mockInvalidResponse), 200),
+      );
 
-      await tester.pumpAndSettle();
-
-      expect(find.text('Ngân sách này không còn hiệu lực!'), findsOneWidget);
+      expect(
+        () async => await budgetController.checkBudgetLimit(userId, budgetId),
+        throwsA(isA<Exception>()),
+      );
     });
 
-    testWidgets('should display expense list when expenses are available',
-        (WidgetTester tester) async {
-      final budget = {
-        '_id': '1',
-        'amount': 1000000,
-        'startBudgetDate': '2023-10-01T00:00:00.000Z',
-        'endBudgetDate': '2023-10-31T00:00:00.000Z',
-      };
+    test('Ném Exception khi lỗi kết nối tới server', () async {
+      final userId = 'test_user_id';
+      final budgetId = 'test_budget_id';
 
-      when(mockController.getUserId()).thenAnswer((_) async => 'user1');
-      when(mockController.checkBudgetLimit('user1', '1'))
-          .thenAnswer((_) async => {
-                'message': 'Ngân sách hợp lệ',
-                'status': 'valid',
-                'totalExpenses': 500000,
-                'expenses': [
-                  {'date': '2023-10-15T00:00:00.000Z', 'totalAmount': 200000},
-                  {'date': '2023-10-20T00:00:00.000Z', 'totalAmount': 300000},
-                ],
-              });
+      when(mockHttpClient.get(any)).thenThrow(Exception('Lỗi kết nối'));
 
-      await tester.pumpWidget(MaterialApp(
-        home: BudgetCalendarPage(budget: budget),
-      ));
+      expect(
+        () async => await budgetController.checkBudgetLimit(userId, budgetId),
+        throwsA(isA<Exception>()),
+      );
+    });
 
-      await tester.pumpAndSettle();
+    test('Ném Exception khi User ID hoặc Budget ID null hoặc rỗng', () async {
+      expect(
+        () async => await budgetController.checkBudgetLimit('', 'budget_id'),
+        throwsA(isA<Exception>()),
+      );
 
-      expect(find.text('Danh sách chi tiêu:'), findsOneWidget);
-      expect(find.text('Chi tiêu: ₫200,000'), findsOneWidget);
-      expect(find.text('Chi tiêu: ₫300,000'), findsOneWidget);
+      expect(
+        () async => await budgetController.checkBudgetLimit('user_id', ''),
+        throwsA(isA<Exception>()),
+      );
+
+      expect(
+        () async => await budgetController.checkBudgetLimit('', ''),
+        throwsA(isA<Exception>()),
+      );
+
+      expect(
+        () async => await budgetController.checkBudgetLimit('user_id', ''),
+        throwsA(isA<Exception>()),
+      );
+    });
+
+    test('Ném Exception khi dữ liệu JSON từ server không thể parse được',
+        () async {
+      final userId = 'test_user_id';
+      final budgetId = 'test_budget_id';
+
+      when(mockHttpClient.get(any)).thenAnswer(
+        (_) async => http.Response('Dữ liệu không phải JSON', 200),
+      );
+
+      expect(
+        () async => await budgetController.checkBudgetLimit(userId, budgetId),
+        throwsA(isA<Exception>()),
+      );
     });
   });
 }
