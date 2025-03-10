@@ -448,8 +448,13 @@ class _FakeXFile_58 extends _i1.SmartFake implements _i22.XFile {
       : super(parent, parentInvocation);
 }
 
-class _FakeImagePicker_59 extends _i1.SmartFake implements _i25.ImagePicker {
-  _FakeImagePicker_59(Object parent, Invocation parentInvocation)
+class _FakeClient_59 extends _i1.SmartFake implements _i6.Client {
+  _FakeClient_59(Object parent, Invocation parentInvocation)
+      : super(parent, parentInvocation);
+}
+
+class _FakeImagePicker_60 extends _i1.SmartFake implements _i25.ImagePicker {
+  _FakeImagePicker_60(Object parent, Invocation parentInvocation)
       : super(parent, parentInvocation);
 }
 
@@ -5426,16 +5431,16 @@ class MockScanExpenseController extends _i1.Mock
       );
 
   @override
-  _i25.ImagePicker get picker => (super.noSuchMethod(
-        Invocation.getter(#picker),
-        returnValue: _FakeImagePicker_59(this, Invocation.getter(#picker)),
-      ) as _i25.ImagePicker);
+  _i6.Client get httpClient => (super.noSuchMethod(
+        Invocation.getter(#httpClient),
+        returnValue: _FakeClient_59(this, Invocation.getter(#httpClient)),
+      ) as _i6.Client);
 
   @override
-  set setImagePicker(_i25.ImagePicker? picker) => super.noSuchMethod(
-        Invocation.setter(#setImagePicker, picker),
-        returnValueForMissingStub: null,
-      );
+  _i25.ImagePicker get picker => (super.noSuchMethod(
+        Invocation.getter(#picker),
+        returnValue: _FakeImagePicker_60(this, Invocation.getter(#picker)),
+      ) as _i25.ImagePicker);
 
   @override
   _i9.Future<void> loadUserId() => (super.noSuchMethod(
@@ -5544,6 +5549,18 @@ class MockCloudApi extends _i1.Mock implements _i53.CloudApi {
           _i26.dummyValue<String>(
             this,
             Invocation.method(#extractTextFromImage, [imageBytes]),
+          ),
+        ),
+      ) as _i9.Future<String>);
+
+  @override
+  _i9.Future<String> sendToBackend(String? extractedText) =>
+      (super.noSuchMethod(
+        Invocation.method(#sendToBackend, [extractedText]),
+        returnValue: _i9.Future<String>.value(
+          _i26.dummyValue<String>(
+            this,
+            Invocation.method(#sendToBackend, [extractedText]),
           ),
         ),
       ) as _i9.Future<String>);

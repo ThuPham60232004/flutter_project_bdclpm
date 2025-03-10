@@ -1,132 +1,83 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:speech_to_text/speech_to_text.dart' as stt;
-import 'package:permission_handler/permission_handler.dart';
-import 'package:intl/intl.dart';
-import '../../mocks/mocks.mocks.dart' hide MockClient;
-import 'package:flutter/foundation.dart';
+import '../../mocks/mocks.mocks.dart'; // Sử dụng MockClient tự tạo
 import 'dart:convert';
-import 'package:http/testing.dart';
 import 'package:flutter_project_bdclpm/features/expense/controllers/manual_voice_controllers.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter/material.dart';
 
 void main() {
   late ExpenseManager expenseManager;
-  late MockSharedPreferences mockSharedPreferences;
-  late MockSpeechToText mockSpeechToText;
-  late MockPermission mockPermission;
-  late Function(String) showSnackBar;
+  late MockClient mockClient;
+  late SharedPreferences sharedPreferences;
 
-  setUp(() {
-    mockSharedPreferences = MockSharedPreferences();
-    mockSpeechToText = MockSpeechToText();
-    mockPermission = MockPermission();
-    showSnackBar = (String message) => debugPrint(message);
-
+  setUp(() async {
+    mockClient = MockClient();
+    SharedPreferences.setMockInitialValues({'userId': 'mockUserId'});
+    sharedPreferences = await SharedPreferences.getInstance();
     expenseManager = ExpenseManager(
-      showSnackBar,
-      Future.value(mockSharedPreferences),
-      httpClient: http.Client(),
+      (message) => debugPrint('Snackbar: $message'),
+      Future.value(sharedPreferences),
+      httpClient: mockClient,
     );
   });
 
-  // test('fetchCategories should load categories', () async {
-  //   final mockResponse = http.Response(jsonEncode([
-  //     {'_id': '1', 'name': 'Food', 'description': 'Food expenses'},
-  //     {'_id': '2', 'name': 'Transport', 'description': 'Transport expenses'},
-  //   ]), 200);
+  test('Kiểm tra tải danh mục thành công', () async {
+    when(mockClient.get(
+            Uri.parse('https://backend-bdclpm.onrender.com/api/categories')))
+        .thenAnswer((_) async => http.Response(
+              jsonEncode([
+                {
+                  '_id': '1',
+                  'name': 'Thực phẩm',
+                  'description': 'Chi tiêu ăn uống'
+                }
+              ]),
+              200,
+            ));
 
-  //   when(mockSharedPreferences.getString('userId')).thenReturn('123');
-  //   when(mockSharedPreferences.setString(any, any)).thenAnswer((_) async => true);
+    await expenseManager.fetchCategories();
 
-  //   final client = MockClient((request) async {
-  //     if (request.url.toString() == 'https://backend-bdclpm.onrender.com/api/categories') {
-  //       return mockResponse;
-  //     }
-  //     return http.Response('Not Found', 404);
-  //   });
+    expect(expenseManager.categories.isNotEmpty, true);
+    expect(expenseManager.categories.first['name'], 'Thực phẩm');
+  });
 
-  //   expenseManager = ExpenseManager(
-  //     showSnackBar,
-  //     Future.value(mockSharedPreferences),
-  //     httpClient: client,
-  //   );
+  test('Kiểm tra lưu chi tiêu thành công', () async {
+    expenseManager.storeNameController.text = 'Quán ăn A';
+    expenseManager.amountController.text = '100000';
+    expenseManager.dateController.text = '01/02/2025';
+    expenseManager.setCategory('Ăn uống');
+    expenseManager.categories = [
+      {'_id': '1', 'name': 'Ăn uống', 'description': 'Chi tiêu ăn uống'}
+    ];
 
-  //   await expenseManager.fetchCategories();
+    when(mockClient.post(
+      Uri.parse('https://backend-bdclpm.onrender.com/api/expenses'),
+      headers: anyNamed('headers'),
+      body: anyNamed('body'),
+    )).thenAnswer((_) async => http.Response('{"message":"Success"}', 201));
 
-  //   expect(expenseManager.categories.length, 2);
-  //   expect(expenseManager.isLoadingCategories, false);
-  // });
+    await expenseManager.saveExpense();
 
-  // test('updateDescription should update description based on category', () {
-  //   expenseManager.categories = [
-  //     {'_id': '1', 'name': 'Food', 'description': 'Food expenses'},
-  //     {'_id': '2', 'name': 'Transport', 'description': 'Transport expenses'},
-  //   ];
+    expect(expenseManager.storeNameController.text, 'Quán ăn A');
+    expect(expenseManager.amountController.text, '100000');
+    expect(expenseManager.dateController.text, '01/02/2025');
+    expect(expenseManager.category, 'Ăn uống');
+  });
 
-  //   expenseManager.updateDescription('Food');
+  test('Kiểm tra thông báo lỗi khi thiếu dữ liệu', () {
+    expenseManager.storeNameController.text = '';
+    expenseManager.amountController.text = '';
+    expenseManager.dateController.text = '';
+    expenseManager.setCategory(null);
 
-  //   expect(expenseManager.descriptionController.text, 'Food expenses');
-  // });
+    expenseManager.saveExpense();
 
-  // test('startListening should start speech recognition', () async {
-  //   when(mockSpeechToText.initialize(
-  //     onStatus: anyNamed('onStatus'),
-  //     onError: anyNamed('onError'),
-  //   )).thenAnswer((_) async => true);
-
-  //   when(mockPermission.status).thenAnswer((_) async => PermissionStatus.granted);
-
-  //   await expenseManager.startListening(expenseManager.storeNameController, 'storeName');
-
-  //   expect(expenseManager.isListeningForStoreName, true);
-  // });
-
-  // test('saveExpense should save expense successfully', () async {
-  //   when(mockSharedPreferences.getString('userId')).thenReturn('123');
-  //   when(mockSharedPreferences.setString(any, any)).thenAnswer((_) async => true);
-
-  //   final client = MockClient((request) async {
-  //     if (request.url.toString() == 'https://backend-bdclpm.onrender.com/api/expenses') {
-  //       return http.Response('Success', 200);
-  //     }
-  //     return http.Response('Not Found', 404);
-  //   });
-
-  //   expenseManager = ExpenseManager(
-  //     showSnackBar,
-  //     Future.value(mockSharedPreferences),
-  //     httpClient: client,
-  //   );
-
-  //   expenseManager.storeNameController.text = 'Test Store';
-  //   expenseManager.amountController.text = '100';
-  //   expenseManager.dateController.text = '01/01/2023';
-  //   expenseManager.descriptionController.text = 'Test Description';
-  //   expenseManager.setCategory('Food');
-
-  //   await expenseManager.saveExpense();
-
-  //   expect(expenseManager.storeNameController.text, 'Test Store');
-  //   expect(expenseManager.amountController.text, '100');
-  //   expect(expenseManager.dateController.text, '01/01/2023');
-  //   expect(expenseManager.descriptionController.text, 'Test Description');
-  // });
-
-  // test('saveExpense should show error if required fields are empty', () async {
-  //   expenseManager.storeNameController.text = '';
-  //   expenseManager.amountController.text = '';
-  //   expenseManager.dateController.text = '';
-  //   expenseManager.descriptionController.text = '';
-  //   expenseManager.setCategory(null);
-
-  //   await expenseManager.saveExpense();
-
-  //   expect(expenseManager.storeNameController.text.isEmpty, true);
-  //   expect(expenseManager.amountController.text.isEmpty, true);
-  //   expect(expenseManager.dateController.text.isEmpty, true);
-  //   expect(expenseManager.descriptionController.text.isEmpty, true);
-  //   expect(expenseManager.category, null);
-  // });
+    expect(expenseManager.storeNameController.text.isEmpty, true);
+    expect(expenseManager.amountController.text.isEmpty, true);
+    expect(expenseManager.dateController.text.isEmpty, true);
+    expect(expenseManager.category, null);
+  });
 }

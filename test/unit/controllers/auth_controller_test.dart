@@ -10,17 +10,6 @@ import '../../mocks/mocks.mocks.dart';
 import '../../test_config.dart';
 import 'dart:convert';
 
-@GenerateMocks([
-  FirebaseAuth,
-  User,
-  UserCredential,
-  UserMetadata,
-  GoogleSignIn,
-  GoogleSignInAccount,
-  GoogleSignInAuthentication,
-  http.Client,
-  SharedPreferences,
-])
 void main() {
   setupTestEnvironment();
   late MockFirebaseAuth mockFirebaseAuth;

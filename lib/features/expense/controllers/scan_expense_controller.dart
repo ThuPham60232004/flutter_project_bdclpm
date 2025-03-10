@@ -16,11 +16,11 @@ class ScanExpenseController {
   bool isUploaded = false;
   bool loading = false;
   String? imageUrl;
+  final http.Client httpClient;
+  final ImagePicker picker = ImagePicker();
 
-  final picker = ImagePicker();
-  set setImagePicker(ImagePicker picker) {
-    picker = picker;
-  }
+  ScanExpenseController({http.Client? httpClient})
+      : httpClient = httpClient ?? http.Client();
 
   Future<void> loadUserId() async {
     final prefs = await SharedPreferences.getInstance();
@@ -32,8 +32,7 @@ class ScanExpenseController {
       DateTime parsedDate = DateFormat("dd/MM/yyyy").parse(date);
       return DateFormat("yyyy-MM-dd").format(parsedDate);
     } catch (e) {
-      print("Error parsing date: $e");
-      return date;
+      throw Exception("Invalid date format: $date");
     }
   }
 
@@ -42,8 +41,8 @@ class ScanExpenseController {
       final pickedFile = await picker.pickImage(source: source);
       if (pickedFile != null) {
         image = File(pickedFile.path);
-        imageBytes = image?.readAsBytesSync();
-        imageName = image?.path.split('/').last;
+        imageBytes = await pickedFile.readAsBytes();
+        imageName = pickedFile.path.split('/').last;
         isUploaded = false;
         extractedText = '';
       }
@@ -58,12 +57,11 @@ class ScanExpenseController {
     }
 
     loading = true;
-
     try {
       imageUrl = await api.saveAndGetUrl(imageName!, imageBytes!);
       isUploaded = true;
     } catch (e) {
-      throw Exception('Error uploading image: $e');
+      throw Exception('Error uploading image: ${e.toString()}');
     } finally {
       loading = false;
     }
@@ -75,13 +73,12 @@ class ScanExpenseController {
     }
 
     loading = true;
-
     try {
       final resultJson = await api.extractTextFromImage(imageBytes!);
       extractedText =
           const JsonEncoder.withIndent("  ").convert(json.decode(resultJson));
     } catch (e) {
-      throw Exception('Error extracting text: $e');
+      throw Exception('Error extracting text: ${e.toString()}');
     } finally {
       loading = false;
     }
@@ -107,14 +104,20 @@ class ScanExpenseController {
       "categoryId": categoryId,
     };
 
-    final response = await http.post(
-      Uri.parse("https://backend-bdclpm.onrender.com/api/expenses"),
-      headers: {"Content-Type": "application/json"},
-      body: jsonEncode(expenseData),
-    );
+    try {
+      final response = await httpClient.post(
+        Uri.parse("https://backend-bdclpm.onrender.com/api/expenses"),
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode(expenseData),
+      );
 
-    if (response.statusCode != 201) {
-      throw Exception('Failed to create expense: ${response.body}');
+      if (response.statusCode != 201) {
+        final errorResponse = jsonDecode(response.body);
+        throw Exception(
+            'Failed to create expense: ${errorResponse["message"] ?? response.body}');
+      }
+    } catch (e) {
+      throw Exception('Error creating expense: ${e.toString()}');
     }
   }
 

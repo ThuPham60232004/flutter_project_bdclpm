@@ -5,10 +5,10 @@ import 'package:flutter_project_bdclpm/features/budget/controllers/budget_contro
 
 class BudgetListPage extends StatefulWidget {
   @override
-  _BudgetListPageState createState() => _BudgetListPageState();
+  BudgetListPageState createState() => BudgetListPageState();
 }
 
-class _BudgetListPageState extends State<BudgetListPage> {
+class BudgetListPageState extends State<BudgetListPage> {
   final BudgetController _budgetController = BudgetController();
   List<dynamic> budgets = [];
   bool isLoading = true;

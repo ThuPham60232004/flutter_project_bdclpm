@@ -4,10 +4,10 @@ import 'package:flutter_project_bdclpm/features/history/controllers/history_cont
 
 class HistoryPage extends StatefulWidget {
   @override
-  _HistoryPageState createState() => _HistoryPageState();
+  HistoryPageState createState() => HistoryPageState();
 }
 
-class _HistoryPageState extends State<HistoryPage> {
+class HistoryPageState extends State<HistoryPage> {
   final HistoryController _controller = HistoryController();
   List<dynamic> orders = [];
   bool isLoading = true;

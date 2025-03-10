@@ -13,8 +13,6 @@ class MockSharedPreferences extends Mock implements SharedPreferences {}
 void main() {
   // Đảm bảo binding được khởi tạo trước khi chạy test
   TestWidgetsFlutterBinding.ensureInitialized();
-
-  // Khởi tạo các mock objects
   late http.Client mockHttpClient;
   late SharedPreferences mockSharedPreferences;
   late HistoryController historyController;
