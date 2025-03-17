@@ -18,9 +18,10 @@ import 'package:flutter_project_bdclpm/features/expense/controllers/cloud.dart';
 import 'package:googleapis_auth/auth_io.dart' as auth;
 import 'package:googleapis/vision/v1.dart' as vision;
 import 'package:gcloud/storage.dart';
-
+import 'package:flutter_project_bdclpm/features/expense/data/auth_client_wrapper.dart';
 @GenerateMocks([
   FirebaseAuth,
+  auth.AuthClient,
   User,
   UserCredential,
   auth.AutoRefreshingAuthClient,
@@ -60,5 +61,6 @@ import 'package:gcloud/storage.dart';
   NotificationDetails,
   ScanExpenseController,
   CloudApi,
+  AuthClientWrapper
 ])
 void main() {}

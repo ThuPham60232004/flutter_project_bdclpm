@@ -23,7 +23,7 @@ void main() {
       httpClient: mockClient,
     );
   });
-
+  group('Manual Voice Controller', () {
   test('Kiểm tra tải danh mục thành công', () async {
     when(mockClient.get(
             Uri.parse('https://backend-bdclpm.onrender.com/api/categories')))
@@ -79,5 +79,6 @@ void main() {
     expect(expenseManager.amountController.text.isEmpty, true);
     expect(expenseManager.dateController.text.isEmpty, true);
     expect(expenseManager.category, null);
+  });
   });
 }

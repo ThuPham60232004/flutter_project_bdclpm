@@ -1,6 +1,4 @@
-import 'package:mockito/annotations.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -56,22 +54,35 @@ void main() {
       body: anyNamed('body'),
     )).thenAnswer((_) async => http.Response(
           jsonEncode({
-            "_id": "mock_user_id",
-            "firebaseId": "mock_firebase_id",
-            "username": "mock_username",
-            "email": "mock_email"
+            "_id": "678cf5b1e729fb9da673725c",
+            "firebaseId": "5b28oy5gNSMdvbVQ4JPFEsaNcne2",
+            "username": "Thu Pham",
+            "email": "phamthianhthu6023789@gmail.com"
           }),
           200,
         ));
     when(mockGoogleSignIn.signOut()).thenAnswer((_) async => null);
     when(mockFirebaseAuth.signOut()).thenAnswer((_) async => null);
   });
+  group("AuthController - isLoggedIn()", () {
+    test("Lấy userId từ SharedPreferences", () async {
+      sharedPreferences.setString('userId', "678cf5b1e729fb9da673725c");
+      final isLoggedIn = await authController.isLoggedIn();
+      expect(isLoggedIn, isTrue);
+    });
+
+    test("userId không tồn tại trong SharedPreferences", () async {
+      sharedPreferences.remove('userId');
+      final isLoggedIn = await authController.isLoggedIn();
+      expect(isLoggedIn, isFalse);
+    });
+  });
 
   group("AuthController - Google Sign-In", () {
-    test("Đăng nhập với Google thành công", () async {
+    test("Người dùng chọn tài khoản Google và đăng nhập thành công", () async {
       final user = await authController.loginWithGoogle();
       expect(user, isNotNull);
-      expect(sharedPreferences.getString('userId'), "mock_user_id");
+      expect(sharedPreferences.getString('userId'), "678cf5b1e729fb9da673725c");
     });
 
     test("Người dùng hủy đăng nhập", () async {
@@ -108,11 +119,71 @@ void main() {
       expect(user, isNull);
     });
   });
+  group("AuthController - Token Handling", () {
+    test("Lấy được accessToken và idToken", () async {
+      when(mockGoogleSignInAuth.accessToken).thenReturn("mock_access_token");
+      when(mockGoogleSignInAuth.idToken).thenReturn("mock_id_token");
+
+      final user = await authController.loginWithGoogle();
+
+      expect(user, isNotNull);
+      expect(sharedPreferences.getString('userId'), "678cf5b1e729fb9da673725c");
+    });
+
+    test("Không lấy được token", () async {
+      when(mockGoogleSignInAuth.accessToken).thenReturn(null);
+      when(mockGoogleSignInAuth.idToken).thenReturn(null);
+
+      final user = await authController.loginWithGoogle();
+
+      expect(user, isNull);
+    });
+  });
+  group("AuthController - Firebase User", () {
+    test("firebaseUser hợp lệ", () async {
+      when(mockUserCredential.user).thenReturn(mockUser);
+
+      final user = await authController.loginWithGoogle();
+
+      expect(user, isNotNull);
+      expect(sharedPreferences.getString('userId'), "678cf5b1e729fb9da673725c");
+    });
+
+    test("firebaseUser là null", () async {
+      when(mockUserCredential.user).thenReturn(null);
+
+      final user = await authController.loginWithGoogle();
+
+      expect(user, isNull);
+    });
+  });
+  group("AuthController - idToken", () {
+    test("Lấy được idToken", () async {
+      when(mockUser.getIdToken()).thenAnswer((_) async => "mock_id_token");
+
+      final user = await authController.loginWithGoogle();
+
+      expect(user, isNotNull);
+      expect(sharedPreferences.getString('userId'), "678cf5b1e729fb9da673725c");
+    });
+
+    test("idToken là null", () async {
+      when(mockUser.getIdToken()).thenAnswer((_) async => null);
+
+      final user = await authController.loginWithGoogle();
+
+      expect(user, isNull);
+    });
+  });
 
   group("AuthController - Sign Out", () {
     test("Đăng xuất thành công", () async {
-      sharedPreferences.setString('userId', "mock_user_id");
+      sharedPreferences.setString('userId', "678cf5b1e729fb9da673725c");
+
       await authController.signOut();
+
+      verify(mockFirebaseAuth.signOut()).called(1);
+      verify(mockGoogleSignIn.signOut()).called(1);
       expect(sharedPreferences.getString('userId'), isNull);
     });
   });

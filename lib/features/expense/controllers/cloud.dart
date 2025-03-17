@@ -6,31 +6,37 @@ import 'package:mime/mime.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter/foundation.dart';
-
+import '../data/auth_client_wrapper.dart';
 class CloudApi {
-  final auth.ServiceAccountCredentials _credentials;
-  auth.AutoRefreshingAuthClient? _client;
+final AuthClientWrapper authClientWrapper;
+  auth.AutoRefreshingAuthClient? client;
+  Storage? storage;
+  String bucketName = 'testflutter';
+  int? timestamp;
+  CloudApi(this.authClientWrapper);
 
-  CloudApi(String json)
-      : _credentials = auth.ServiceAccountCredentials.fromJson(json);
-
-  Future<void> _initializeClient() async {
-    _client ??= await auth.clientViaServiceAccount(
-      _credentials,
-      [
-        'https://www.googleapis.com/auth/cloud-platform',
-        'https://www.googleapis.com/auth/cloud-vision',
-      ],
-    );
+   Future<void> initializeClient() async {
+    if (authClientWrapper == null) {
+      throw Exception("AuthClientWrapper is required");
+    }
+    client = await authClientWrapper!.createAuthClient();
+    storage = Storage(client!, bucketName);
   }
 
+  Storage get cloudStorage {
+    if (storage == null) {
+      throw Exception("Cloud storage not initialized");
+    }
+    return storage!;
+  }
+
+
   Future<ObjectInfo> save(String name, Uint8List imgBytes) async {
-    await _initializeClient();
+    await initializeClient();
 
-    var storage = Storage(_client!, 'testflutter');
-    var bucket = storage.bucket('testflutter');
+    var bucket = cloudStorage.bucket(bucketName);
 
-    final timestamp = DateTime.now().millisecondsSinceEpoch;
+    timestamp = DateTime.now().millisecondsSinceEpoch;
     final type = lookupMimeType(name);
 
     return await bucket.writeBytes(name, imgBytes,
@@ -41,12 +47,12 @@ class CloudApi {
   }
 
   Future<String> saveAndGetUrl(String name, Uint8List imgBytes) async {
-    await _initializeClient();
+    await initializeClient();
 
-    var storage = Storage(_client!, 'testflutter');
+    var storage = Storage(client!, 'testflutter');
     var bucket = storage.bucket('testflutter');
 
-    final timestamp = DateTime.now().millisecondsSinceEpoch;
+    timestamp = DateTime.now().millisecondsSinceEpoch;
     final type = lookupMimeType(name);
 
     final objectInfo = await bucket.writeBytes(name, imgBytes,
@@ -61,11 +67,11 @@ class CloudApi {
   }
 
   Future<String> extractTextFromImage(Uint8List imageBytes) async {
-    await _initializeClient();
+    await initializeClient();
 
     String base64Image = base64Encode(imageBytes);
 
-    var visionApi = vision.VisionApi(_client!);
+    var visionApi = vision.VisionApi(client!);
 
     var image = vision.Image(content: base64Image);
     var request = vision.AnnotateImageRequest(
@@ -109,33 +115,39 @@ class CloudApi {
     }
   }
 
-  Future<String> sendToBackend(String extractedText) async {
-    final url =
-        Uri.parse('https://backend-bdclpm.onrender.com/api/gemini/process');
-    try {
-      final response = await http.post(
-        url,
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'extractedText': extractedText}),
-      );
 
-      debugPrint('Response Code: ${response.statusCode}');
-      debugPrint('Response Body: ${response.body}');
 
-      if (response.statusCode == 200) {
-        return response.body;
-      } else {
-        return jsonEncode({
-          'status': 'error',
-          'message': 'Failed to process data on backend',
-          'response': response.body,
-        });
-      }
-    } catch (e) {
+ static Future<String> sendToBackend(String extractedText, {http.Client? httpClient}) async {
+  final url = Uri.parse('https://backend-bdclpm.onrender.com/api/gemini/process');
+  httpClient ??= http.Client();
+
+  try {
+    final response = await httpClient.post(
+      url,
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'extractedText': extractedText}),
+    );
+
+    debugPrint('Response Code: ${response.statusCode}');
+    debugPrint('Response Body: ${response.body}');
+
+    if (response.statusCode == 200) {
+      return response.body;
+    } else {
       return jsonEncode({
         'status': 'error',
-        'message': 'Error sending data to backend: $e',
+        'message': 'Failed to process data on backend',
+        'response': response.body,
       });
     }
+  } catch (e) {
+    return jsonEncode({
+      'status': 'error',
+      'message': 'Error sending data to backend: $e',
+    });
+  } finally {
+    httpClient.close();
   }
+}
+
 }

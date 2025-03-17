@@ -47,7 +47,6 @@ void main() {
     });
 
     test('fetchBudgets ném lỗi khi gặp lỗi network', () async {
-      // Mock lỗi mạng
       when(mockClient.get(
         Uri.parse('https://backend-bdclpm.onrender.com/api/budgets/'),
         headers: {'Content-Type': 'application/json'},

@@ -23,11 +23,18 @@ class ScanExpenseController {
       : httpClient = httpClient ?? http.Client();
 
   Future<void> loadUserId() async {
-    final prefs = await SharedPreferences.getInstance();
-    userId = prefs.getString('userId');
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      userId = prefs.getString('userId');
+    } catch (e) {
+      throw Exception('Lỗi khi tải userId: $e');
+    }
   }
 
   String convertToIsoDate(String date) {
+    if (RegExp(r'^\d{4}-\d{2}-\d{2}$').hasMatch(date)) {
+      return date;
+    }
     try {
       DateTime parsedDate = DateFormat("dd/MM/yyyy").parse(date);
       return DateFormat("yyyy-MM-dd").format(parsedDate);
@@ -122,6 +129,9 @@ class ScanExpenseController {
   }
 
   String formatCurrency(double amount) {
+     if (amount.isNaN || amount.isInfinite) {
+    throw FormatException("Invalid amount");
+  }
     final NumberFormat formatter = NumberFormat("#,##0", "vi_VN");
     return formatter.format(amount);
   }

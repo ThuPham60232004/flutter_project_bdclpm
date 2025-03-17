@@ -6,7 +6,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:flutter_project_bdclpm/features/expense/controllers/cloud.dart';
 import 'package:flutter_project_bdclpm/features/expense/presentation/scan_expense_page.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-
+import '../data/auth_client_wrapper.dart';
 class ScanPage extends StatefulWidget {
   final String? title;
   const ScanPage({Key? key, this.title}) : super(key: key);
@@ -36,7 +36,8 @@ class _ScanPageState extends State<ScanPage> {
     try {
       final credentialsJson =
           await rootBundle.loadString('assets/key/credentials.json');
-      api = CloudApi(credentialsJson);
+      final authWrapper = AuthClientWrapper(credentialsJson);    
+      api = CloudApi(authWrapper);
       debugPrint('✅ API initialized: $api');
     } catch (e, stackTrace) {
       debugPrint('❌ Error initializing API: $e\n$stackTrace');

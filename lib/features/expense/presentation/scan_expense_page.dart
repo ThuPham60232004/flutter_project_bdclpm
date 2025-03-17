@@ -147,29 +147,65 @@ class _ScanExpensePageState extends State<ScanExpensePage> {
                   value: '\$',
                   child: Text('USD'),
                 ),
+                DropdownMenuItem(
+                  value: 'EUR',
+                  child: Text('EUR'),
+                ),
+                DropdownMenuItem(
+                  value: 'JPY',
+                  child: Text('JPY'),
+                ),
+                DropdownMenuItem(
+                  value: 'THB',
+                  child: Text('THB'),
+                ),
+                DropdownMenuItem(
+                  value: 'S',
+                  child: Text('SGD'),
+                ),
+                DropdownMenuItem(
+                  value: 'CNY',
+                  child: Text('CNY'),
+                ),
+                DropdownMenuItem(
+                  value: '៛',
+                  child: Text('KHR'),
+                ),
+                DropdownMenuItem(
+                  value: '₭',
+                  child: Text('LAK'),
+                ),
               ],
-              onChanged: (currency) {
+          onChanged: (currency) {
+            if (currency == 'VND') {
+              if (widget.currency != 'VND') {
+                double totalAmount = parseAmount(amountController.text);
+                Map<String, double> exchangeRates = {
+                  'USD': 23000, 'EUR': 25000, 'JPY': 200, 'THB': 700,
+                  'S': 16000, 'CNY': 3500, 'KHR': 570, 'LAK': 200,
+                };
+
+                double convertedAmount = totalAmount * (exchangeRates[widget.currency] ?? 1);
+                String formattedAmount = NumberFormat("#,##0", "vi_VN").format(convertedAmount);
+
                 setState(() {
-                  selectedCurrency = currency ?? 'VND';
-                  double totalAmount = parseAmount(amountController.text);
-                  if (selectedCurrency == 'VND') {
-                    double convertedAmount = totalAmount * 23000;
-                    amountController.text =
-                        NumberFormat("#,##0", "vi_VN").format(convertedAmount);
-                  } else {
-                    amountController.text =
-                        NumberFormat("#,##0.00", "en_US").format(totalAmount);
-                  }
+                  amountController.text = formattedAmount;
+                  selectedCurrency = 'VND';
                 });
-              },
+
+                print("🔹 Updated Amount in Controller: ${amountController.text}");
+              }
+            } else {
+              _showSnackBar("Chỉ có thể đổi từ ngoại tệ sang VND.");
+            }
+          },
             ),
             const SizedBox(height: 16),
             ElevatedButton(
               onPressed: () async {
                 try {
-                  if (selectedCurrency == '\$') {
-                    _showSnackBar(
-                        "Không thể lưu chi tiêu với loại tiền tệ USD.");
+                  if (selectedCurrency != 'VND') {
+                    _showSnackBar("Chỉ có thể lưu chi tiêu với tiền Việt Nam (VND).");
                     return;
                   }
                   await _controller.createExpense(
@@ -207,23 +243,24 @@ class DateInputFormatter extends TextInputFormatter {
   @override
   TextEditingValue formatEditUpdate(
       TextEditingValue oldValue, TextEditingValue newValue) {
-    String digitsOnly = newValue.text.replaceAll(RegExp(r'\D'), '');
+    String digitsOnly = newValue.text.replaceAll(RegExp(r'\D'), ''); // Chỉ lấy số
 
     if (digitsOnly.isEmpty) return newValue;
 
     List<String> parts = [];
-
-    if (digitsOnly.length >= 2) {
-      parts.add(digitsOnly.substring(0, 2).padLeft(2, '0'));
-    }
-    if (digitsOnly.length >= 4) {
-      parts.add(digitsOnly.substring(2, 4).padLeft(2, '0'));
-    }
     if (digitsOnly.length > 4) {
-      parts.add(digitsOnly.substring(4, digitsOnly.length.clamp(4, 8)));
+      parts.add(digitsOnly.substring(0, 4)); // YYYY
+      if (digitsOnly.length > 6) {
+        parts.add(digitsOnly.substring(4, 6)); // MM
+        parts.add(digitsOnly.substring(6, digitsOnly.length.clamp(6, 8))); // DD
+      } else {
+        parts.add(digitsOnly.substring(4));
+      }
+    } else {
+      parts.add(digitsOnly);
     }
 
-    String formattedText = parts.join('/');
+    String formattedText = parts.join('-');
 
     return TextEditingValue(
       text: formattedText,
@@ -231,3 +268,5 @@ class DateInputFormatter extends TextInputFormatter {
     );
   }
 }
+
+
