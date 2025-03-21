@@ -23,10 +23,12 @@ class PdfExcelController extends ChangeNotifier {
           .get(Uri.parse('https://backend-bdclpm.onrender.com/api/categories'));
       if (response.statusCode == 200) {
         categories = json.decode(response.body);
+        
       } else {
         throw Exception('Failed to load categories');
       }
     } catch (e) {
+      categories = [];
       throw Exception('Error fetching categories: $e');
     } finally {
       isLoadingCategories = false;
@@ -42,11 +44,9 @@ class PdfExcelController extends ChangeNotifier {
   void updateDescription(String? categoryName) {
     final category = categories.firstWhere(
       (cat) => cat['name'] == categoryName,
-      orElse: () => null,
+      orElse: () => {},
     );
-    if (category != null) {
-      descriptionController.text = category['description'] ?? '';
-    }
+    descriptionController.text = category['description'] ?? '';
   }
 
   Future<void> pickPdfOrExcelFile() async {

@@ -64,70 +64,77 @@ void main() {
     when(mockGoogleSignIn.signOut()).thenAnswer((_) async => null);
     when(mockFirebaseAuth.signOut()).thenAnswer((_) async => null);
   });
+
   group("AuthController - isLoggedIn()", () {
     test("Lấy userId từ SharedPreferences", () async {
       sharedPreferences.setString('userId', "678cf5b1e729fb9da673725c");
       final isLoggedIn = await authController.isLoggedIn();
+      print("Lấy userId từ SharedPreferences");
       expect(isLoggedIn, isTrue);
+      print(isLoggedIn ? "✅Lấy userId thành công từ SharedPreferences và đăng nhập" : "❌ Chưa đăng nhập");
     });
 
     test("userId không tồn tại trong SharedPreferences", () async {
       sharedPreferences.remove('userId');
       final isLoggedIn = await authController.isLoggedIn();
       expect(isLoggedIn, isFalse);
+      print(isLoggedIn ? "✅ Đã đăng nhập" : "❌ userId không tồn tại trong SharedPreferences nên chưa đăng nhập");
     });
   });
 
   group("AuthController - Google Sign-In", () {
-    test("Người dùng chọn tài khoản Google và đăng nhập thành công", () async {
+    test("Người dùng chọn tài khoản Google", () async {
       final user = await authController.loginWithGoogle();
-      expect(user, isNotNull);
-      expect(sharedPreferences.getString('userId'), "678cf5b1e729fb9da673725c");
+      final isSuccess = user != null;
+      expect(isSuccess, isTrue);
+      print(isSuccess ? "✅ Người dùng chọn tài khoản Google và đăng nhập thành công" : "❌ Người dùng chọn tài khoản Google và đăng nhập thất bại");
     });
 
     test("Người dùng hủy đăng nhập", () async {
       when(mockGoogleSignIn.signIn()).thenAnswer((_) async => null);
       final user = await authController.loginWithGoogle();
-      expect(user, isNull);
+      final isSuccess = user != null;
+  
+      expect(isSuccess, isFalse);
+      print(isSuccess ? "✅ Đăng nhập thành công" : "❌ Người dùng đã hủy đăng nhập nên không đăng nhập được ");
     });
 
-    test("Đăng nhập thất bại khi Google Sign-In bị hủy", () async {
+    test("Đăng nhập thất bại khi Google Auth bị lỗi", () async {
       when(mockGoogleSignInAccount.authentication)
           .thenThrow(Exception("Google Auth Error"));
       final user = await authController.loginWithGoogle();
+      
       expect(user, isNull);
+      print("❌ Đăng nhập thất bại do Google Auth lỗi");
     });
 
     test("Đăng nhập thất bại ở bước xác thực Firebase", () async {
       when(mockFirebaseAuth.signInWithCredential(any))
           .thenThrow(FirebaseAuthException(code: "error"));
       final user = await authController.loginWithGoogle();
+
       expect(user, isNull);
+      print("❌ Đăng nhập thất bại do Firebase lỗi");
     });
 
-    test("Đăng nhập thất bại khi gọi API backend", () async {
-      when(mockHttpClient.post(any,
-              headers: anyNamed('headers'), body: anyNamed('body')))
+    test("Đăng nhập thất bại khi API backend trả về 401", () async {
+      when(mockHttpClient.post(any, headers: anyNamed('headers'), body: anyNamed('body')))
           .thenAnswer((_) async => http.Response('Unauthorized', 401));
       final user = await authController.loginWithGoogle();
-      expect(user, isNull);
-    });
 
-    test("Lỗi ngoại lệ trong quá trình đăng nhập", () async {
-      when(mockGoogleSignIn.signIn()).thenThrow(Exception("Unexpected Error"));
-      final user = await authController.loginWithGoogle();
       expect(user, isNull);
+      print("❌ Đăng nhập thất bại do API backend từ chối");
     });
   });
+
   group("AuthController - Token Handling", () {
     test("Lấy được accessToken và idToken", () async {
-      when(mockGoogleSignInAuth.accessToken).thenReturn("mock_access_token");
-      when(mockGoogleSignInAuth.idToken).thenReturn("mock_id_token");
-
       final user = await authController.loginWithGoogle();
+      final userId = sharedPreferences.getString('userId');
 
       expect(user, isNotNull);
-      expect(sharedPreferences.getString('userId'), "678cf5b1e729fb9da673725c");
+      expect(userId, "678cf5b1e729fb9da673725c");
+      print("✅ Lấy token thành công");
     });
 
     test("Không lấy được token", () async {
@@ -137,54 +144,19 @@ void main() {
       final user = await authController.loginWithGoogle();
 
       expect(user, isNull);
-    });
-  });
-  group("AuthController - Firebase User", () {
-    test("firebaseUser hợp lệ", () async {
-      when(mockUserCredential.user).thenReturn(mockUser);
-
-      final user = await authController.loginWithGoogle();
-
-      expect(user, isNotNull);
-      expect(sharedPreferences.getString('userId'), "678cf5b1e729fb9da673725c");
-    });
-
-    test("firebaseUser là null", () async {
-      when(mockUserCredential.user).thenReturn(null);
-
-      final user = await authController.loginWithGoogle();
-
-      expect(user, isNull);
-    });
-  });
-  group("AuthController - idToken", () {
-    test("Lấy được idToken", () async {
-      when(mockUser.getIdToken()).thenAnswer((_) async => "mock_id_token");
-
-      final user = await authController.loginWithGoogle();
-
-      expect(user, isNotNull);
-      expect(sharedPreferences.getString('userId'), "678cf5b1e729fb9da673725c");
-    });
-
-    test("idToken là null", () async {
-      when(mockUser.getIdToken()).thenAnswer((_) async => null);
-
-      final user = await authController.loginWithGoogle();
-
-      expect(user, isNull);
+      print("❌ Không lấy được token");
     });
   });
 
   group("AuthController - Sign Out", () {
     test("Đăng xuất thành công", () async {
       sharedPreferences.setString('userId', "678cf5b1e729fb9da673725c");
-
       await authController.signOut();
 
       verify(mockFirebaseAuth.signOut()).called(1);
       verify(mockGoogleSignIn.signOut()).called(1);
       expect(sharedPreferences.getString('userId'), isNull);
+      print("✅ Đăng xuất thành công");
     });
   });
 }

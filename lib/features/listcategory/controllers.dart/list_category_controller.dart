@@ -8,12 +8,9 @@ class ListCategoryController with ChangeNotifier {
   double totalSpent = 0.0;
   http.Client? _httpClient;
 
-  // Setter để inject http.Client
   set httpClient(http.Client client) {
     _httpClient = client;
   }
-
-  // Getter để sử dụng httpClient
   http.Client get httpClient => _httpClient ?? http.Client();
 
   Future<void> fetchExpenses(String categoryId) async {

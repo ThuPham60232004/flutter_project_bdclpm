@@ -49,21 +49,29 @@ class ExpenseManager {
     _enableVoiceInput = value;
   }
 
-  Future<void> fetchCategories() async {
-    try {
-      final response = await http
-          .get(Uri.parse('https://backend-bdclpm.onrender.com/api/categories'));
-      if (response.statusCode == 200) {
-        categories = json.decode(response.body);
-        isLoadingCategories = false;
-      } else {
-        throw Exception('Failed to load categories');
-      }
-    } catch (e) {
-      debugPrint('Error fetching categories: $e');
-      isLoadingCategories = false;
+Future<void> fetchCategories() async {
+  try {
+    isLoadingCategories = true;
+    categories = []; 
+
+    final response = await http.get(
+      Uri.parse('https://backend-bdclpm.onrender.com/api/categories'),
+    );
+
+    if (response.statusCode == 200) {
+      categories = json.decode(response.body);
+    } else {
+      throw Exception('Failed to load categories'); // 🔴 Ném lỗi
     }
+  } catch (e) {
+    debugPrint('Error fetching categories: $e');
+    categories = [];
+    isLoadingCategories = false;
+    throw e;
+  } finally {
+    isLoadingCategories = false;
   }
+}
 
   void updateDescription(String categoryName) {
     final category = categories.firstWhere(
@@ -75,7 +83,7 @@ class ExpenseManager {
     }
   }
 
-  Future<void> _checkMicrophonePermission() async {
+  Future<void> checkMicrophonePermission() async {
     var status = await Permission.microphone.status;
     if (status.isDenied || status.isPermanentlyDenied) {
       status = await Permission.microphone.request();
@@ -88,7 +96,7 @@ class ExpenseManager {
 
   Future<void> startListening(
       TextEditingController controller, String field) async {
-    await _checkMicrophonePermission();
+    await checkMicrophonePermission();
     bool available = await _speech.initialize(
       onStatus: (status) {
         debugPrint('Trạng thái: $status');
@@ -119,7 +127,7 @@ class ExpenseManager {
     }
   }
 
-  void _stopListening(String field) {
+  void stopListening(String field) {
     if (field == 'storeName') _isListeningForStoreName = false;
     if (field == 'amount') _isListeningForAmount = false;
     if (field == 'description') _isListeningForDescription = false;

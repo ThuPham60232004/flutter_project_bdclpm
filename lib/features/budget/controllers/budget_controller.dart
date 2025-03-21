@@ -3,8 +3,6 @@ import 'package:http/http.dart' as http;
 
 class BudgetController {
   final http.Client httpClient;
-
-  // Cho phép truyền httpClient từ bên ngoài để dễ mock trong test
   BudgetController({http.Client? httpClient})
       : httpClient = httpClient ?? http.Client();
 

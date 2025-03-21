@@ -36,7 +36,10 @@ void main() {
 
       await controller.loadUserId();
 
-      expect(controller.userId, '678cf5b1e729fb9da673725c');
+      bool result = controller.userId == '678cf5b1e729fb9da673725c';
+      print('So sánh userId: $result');
+
+      expect(result, true);
     });
 
     test('Nên để userId là null nếu không tồn tại trong SharedPreferences',
@@ -45,50 +48,69 @@ void main() {
 
       await controller.loadUserId();
 
-      expect(controller.userId, isNull);
+      bool result = controller.userId == null;
+      print('So sánh userId khi không có trong SharedPreferences: $result');
+
+      expect(result, true);
     });
   });
   group('convertToIsoDate', () {
     test('Trả về nguyên giá trị nếu ngày đã đúng định dạng yyyy-MM-dd', () {
-      expect(controller.convertToIsoDate('2024-03-17'), '2024-03-17');
+      String result = controller.convertToIsoDate('2024-03-17');
+      bool comparison = result == '2024-03-17';
+
+      print('So sánh ngày yyyy-MM-dd: $comparison');
+
+      expect(comparison, true);
     });
 
     test('Chuyển đổi ngày từ dd/MM/yyyy sang yyyy-MM-dd', () {
-      expect(controller.convertToIsoDate('17/03/2024'), '2024-03-17');
+      String result = controller.convertToIsoDate('17/03/2024');
+      bool comparison = result == '2024-03-17';
+
+      print('So sánh chuyển đổi dd/MM/yyyy -> yyyy-MM-dd: $comparison');
+
+      expect(comparison, true);
     });
 
     test('Ném Exception nếu ngày sai định dạng', () {
       expect(() => controller.convertToIsoDate('03-17-2024'), throwsException);
       expect(() => controller.convertToIsoDate('ngày 17 tháng 3'),
           throwsException);
+
+      print('Kiểm tra ngoại lệ với ngày sai định dạng: true');
     });
 
     test('Ném Exception nếu ngày null hoặc rỗng', () {
       expect(() => controller.convertToIsoDate(''), throwsException);
       expect(() => controller.convertToIsoDate('   '), throwsException);
+
+      print('Kiểm tra ngoại lệ với ngày rỗng: true');
     });
   });
+
   group('pickImage()', () {
     test('Chọn hình ảnh từ camera và cập nhật trạng thái', () async {
       const MethodChannel imagePickerChannel =
           MethodChannel('plugins.flutter.io/image_picker');
 
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-          .setMockMethodCallHandler(
-        imagePickerChannel,
-        (MethodCall methodCall) async {
-          if (methodCall.method == 'pickImage') {
-            return 'assets/images/hcm_map.png';
-          }
-          return null;
-        },
-      );
+          .setMockMethodCallHandler(imagePickerChannel,
+              (MethodCall methodCall) async {
+        if (methodCall.method == 'pickImage') {
+          return 'assets/images/hcm_map.png';
+        }
+        return null;
+      });
 
       await controller.pickImage(ImageSource.camera);
 
-      expect(controller.image, isNotNull);
-      expect(controller.imageName, 'hcm_map.png');
-      expect(controller.isUploaded, false);
+      bool comparison = controller.image != null &&
+          controller.imageName == 'hcm_map.png' &&
+          controller.isUploaded == false;
+      print('So sánh chọn ảnh từ camera: $comparison');
+
+      expect(comparison, true);
     });
 
     test('Chọn ảnh từ thư viện thành công', () async {
@@ -96,55 +118,64 @@ void main() {
           MethodChannel('plugins.flutter.io/image_picker');
 
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-          .setMockMethodCallHandler(
-        imagePickerChannel,
-        (MethodCall methodCall) async {
-          if (methodCall.method == 'pickImage') {
-            return 'assets/images/hcm_map.png';
-          }
-          return null;
-        },
-      );
+          .setMockMethodCallHandler(imagePickerChannel,
+              (MethodCall methodCall) async {
+        if (methodCall.method == 'pickImage') {
+          return 'assets/images/hcm_map.png';
+        }
+        return null;
+      });
 
       await controller.pickImage(ImageSource.gallery);
 
-      expect(controller.image, isNotNull);
-      expect(controller.imageName, 'hcm_map.png');
-      expect(controller.isUploaded, false);
+      bool comparison = controller.image != null &&
+          controller.imageName == 'hcm_map.png' &&
+          controller.isUploaded == false;
+      print('So sánh chọn ảnh từ thư viện: $comparison');
+
+      expect(comparison, true);
     });
+
     test('Đưa vào đường dẫn không tồn tại', () async {
       const MethodChannel imagePickerChannel =
           MethodChannel('plugins.flutter.io/image_picker');
 
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-          .setMockMethodCallHandler(
-        imagePickerChannel,
-        (MethodCall methodCall) async {
-          if (methodCall.method == 'pickImage') {
-            return 'assets/images/hcm_map.png';
-          }
-          return null;
-        },
-      );
+          .setMockMethodCallHandler(imagePickerChannel,
+              (MethodCall methodCall) async {
+        if (methodCall.method == 'pickImage') {
+          return 'assets/images/unknown.png'; // Không tồn tại
+        }
+        return null;
+      });
 
       await controller.pickImage(ImageSource.gallery);
 
-      expect(controller.image, isNotNull);
-      expect(controller.imageName, 'hcm_map.png');
-      expect(controller.isUploaded, false);
+      bool comparison = controller.image != null &&
+          controller.imageName == 'unknown.png' &&
+          controller.isUploaded == false;
+      print('So sánh chọn ảnh với đường dẫn không tồn tại: $comparison');
+
+      expect(comparison, true);
     });
+
     test('Gây lỗi khi chọn ảnh từ camera (Exception)', () async {
       when(mockImagePicker.pickImage(source: ImageSource.camera))
           .thenThrow(Exception('Lỗi khi chọn ảnh từ camera'));
 
       expect(() => controller.pickImage(ImageSource.camera), throwsException);
+
+      print('So sánh lỗi khi chọn ảnh từ camera: true');
     });
   });
+
   group('saveImage()', () {
     test('Ném Exception khi imageBytes == null', () async {
       controller.imageBytes = null;
       controller.imageName = 'mock.jpg';
 
+      print(
+          'So sánh throwsException: ${() => controller.saveImage(mockCloudApi) is Exception}');
       expect(() => controller.saveImage(mockCloudApi), throwsException);
     });
 
@@ -153,6 +184,9 @@ void main() {
       controller.imageName = 'mock.jpg';
       when(mockCloudApi.saveAndGetUrl(any, any))
           .thenAnswer((_) async => 'http://mock.url');
+
+      print(
+          'So sánh returnsNormally: ${() => controller.saveImage(mockCloudApi) is! Exception}');
       expect(() => controller.saveImage(mockCloudApi), returnsNormally);
     });
 
@@ -160,6 +194,8 @@ void main() {
       controller.imageBytes = Uint8List(10);
       controller.imageName = null;
 
+      print(
+          'So sánh throwsException: ${() => controller.saveImage(mockCloudApi) is Exception}');
       expect(() => controller.saveImage(mockCloudApi), throwsException);
     });
 
@@ -170,6 +206,8 @@ void main() {
       when(mockCloudApi.saveAndGetUrl(any, any))
           .thenAnswer((_) async => 'http://mock.url');
 
+      print(
+          'So sánh returnsNormally: ${() => controller.saveImage(mockCloudApi) is! Exception}');
       expect(() => controller.saveImage(mockCloudApi), returnsNormally);
     });
 
@@ -181,6 +219,7 @@ void main() {
           .thenAnswer((_) async => 'http://mock.url');
 
       final future = controller.saveImage(mockCloudApi);
+      print('So sánh loading trước await: ${controller.loading == true}');
       expect(controller.loading, true);
 
       await future;
@@ -195,6 +234,7 @@ void main() {
 
       await controller.saveImage(mockCloudApi);
 
+      print('So sánh imageUrl: ${controller.imageUrl == "http://mock.url"}');
       expect(controller.imageUrl, 'http://mock.url');
     });
 
@@ -205,6 +245,8 @@ void main() {
       when(mockCloudApi.saveAndGetUrl(any, any))
           .thenThrow(Exception('Lỗi server'));
 
+      print(
+          'So sánh throwsException: ${() => controller.saveImage(mockCloudApi) is Exception}');
       expect(() => controller.saveImage(mockCloudApi), throwsException);
     });
 
@@ -217,6 +259,7 @@ void main() {
 
       await controller.saveImage(mockCloudApi);
 
+      print('So sánh isUploaded: ${controller.isUploaded == true}');
       expect(controller.isUploaded, true);
     });
 
@@ -227,6 +270,8 @@ void main() {
       when(mockCloudApi.saveAndGetUrl(any, any))
           .thenThrow(Exception('Lỗi khi upload'));
 
+      print(
+          'So sánh throwsException: ${() => controller.saveImage(mockCloudApi) is Exception}');
       expect(() => controller.saveImage(mockCloudApi), throwsException);
     });
 
@@ -238,6 +283,7 @@ void main() {
           .thenAnswer((_) async => 'http://mock.url');
 
       await controller.saveImage(mockCloudApi);
+      print('So sánh loading sau thành công: ${controller.loading == false}');
       expect(controller.loading, false);
 
       when(mockCloudApi.saveAndGetUrl(any, any))
@@ -247,6 +293,7 @@ void main() {
         await controller.saveImage(mockCloudApi);
       } catch (_) {}
 
+      print('So sánh loading sau thất bại: ${controller.loading == false}');
       expect(controller.loading, false);
     });
   });
@@ -255,6 +302,8 @@ void main() {
     test('Ném Exception khi imageBytes == null', () async {
       controller.imageBytes = null;
 
+      print(
+          'So sánh throwsException: ${() => controller.extractText(mockCloudApi) is Exception}');
       expect(() => controller.extractText(mockCloudApi), throwsException);
     });
 
@@ -265,6 +314,8 @@ void main() {
           .thenAnswer((_) async => '{"text": "sample"}');
 
       final future = controller.extractText(mockCloudApi);
+
+      print('So sánh loading trước await: ${controller.loading == true}');
       expect(controller.loading, true);
 
       await future;
@@ -279,8 +330,11 @@ void main() {
 
       await controller.extractText(mockCloudApi);
 
-      expect(controller.extractedText,
-          JsonEncoder.withIndent("  ").convert(json.decode(mockResponse)));
+      final expectedText =
+          JsonEncoder.withIndent("  ").convert(json.decode(mockResponse));
+      print(
+          'So sánh extractedText: ${controller.extractedText == expectedText}');
+      expect(controller.extractedText, expectedText);
     });
 
     test('Ném Exception khi API gặp lỗi', () async {
@@ -289,6 +343,8 @@ void main() {
       when(mockCloudApi.extractTextFromImage(any))
           .thenThrow(Exception('Lỗi server'));
 
+      print(
+          'So sánh throwsException: ${() => controller.extractText(mockCloudApi) is Exception}');
       expect(() => controller.extractText(mockCloudApi), throwsException);
     });
 
@@ -299,6 +355,8 @@ void main() {
       when(mockCloudApi.extractTextFromImage(any))
           .thenAnswer((_) async => mockInvalidResponse);
 
+      print(
+          'So sánh throwsException: ${() => controller.extractText(mockCloudApi) is Exception}');
       expect(() => controller.extractText(mockCloudApi), throwsException);
     });
 
@@ -309,6 +367,7 @@ void main() {
           .thenAnswer((_) async => '{"text": "sample"}');
 
       await controller.extractText(mockCloudApi);
+      print('So sánh loading sau thành công: ${controller.loading == false}');
       expect(controller.loading, false);
 
       when(mockCloudApi.extractTextFromImage(any))
@@ -318,6 +377,7 @@ void main() {
         await controller.extractText(mockCloudApi);
       } catch (_) {}
 
+      print('So sánh loading sau thất bại: ${controller.loading == false}');
       expect(controller.loading, false);
     });
   });
@@ -403,32 +463,50 @@ void main() {
   });
   group('formatCurrency()', () {
     test('amount hợp lệ', () {
+      print('So sánh 1000: ${controller.formatCurrency(1000) == '1.000'}');
       expect(controller.formatCurrency(1000), '1.000');
+
+      print(
+          'So sánh 1234567: ${controller.formatCurrency(1234567) == '1.234.567'}');
       expect(controller.formatCurrency(1234567), '1.234.567');
+
+      print(
+          'So sánh 999999999: ${controller.formatCurrency(999999999) == '999.999.999'}');
       expect(controller.formatCurrency(999999999), '999.999.999');
+
+      print('So sánh 0: ${controller.formatCurrency(0) == '0'}');
       expect(controller.formatCurrency(0), '0');
     });
 
     test('amount không hợp lệ', () {
+      print(
+          'So sánh NaN throwsException: ${() => controller.formatCurrency(double.nan) is Exception}');
       expect(() => controller.formatCurrency(double.nan),
           throwsA(isA<FormatException>()));
+
+      print(
+          'So sánh Infinity throwsException: ${() => controller.formatCurrency(double.infinity) is Exception}');
       expect(() => controller.formatCurrency(double.infinity),
           throwsA(isA<FormatException>()));
+
+      print(
+          'So sánh Negative Infinity throwsException: ${() => controller.formatCurrency(double.negativeInfinity) is Exception}');
       expect(() => controller.formatCurrency(double.negativeInfinity),
           throwsA(isA<FormatException>()));
     });
   });
+
   group('createExpense()', () {
     test('Ném Exception khi userId == null', () async {
       controller.userId = null;
 
       expect(
         () => controller.createExpense(
-          storeName: 'Test Store',
+          storeName: 'quan an thien tan',
           totalAmount: 100.0,
-          description: 'Test description',
+          description: 'Các mặt hàng liên quan đến thực phẩm',
           date: '2025-03-17',
-          categoryId: 'cat123',
+          categoryId: '678d18f502455271e95277b4',
         ),
         throwsException,
       );
@@ -443,11 +521,11 @@ void main() {
 
       expect(
         () => controller.createExpense(
-          storeName: 'Test Store',
+          storeName: 'quan an thien tan',
           totalAmount: 100.0,
-          description: 'Test description',
+          description: 'Các mặt hàng liên quan đến thực phẩm',
           date: '2025-03-17',
-          categoryId: 'cat123',
+          categoryId: '678d18f502455271e95277b4',
         ),
         returnsNormally,
       );
@@ -462,19 +540,19 @@ void main() {
 
       final expectedExpenseData = {
         "userId": "user123",
-        "storeName": "Test Store",
+        "storeName": "quan an thien tan",
         "totalAmount": 100.0,
-        "description": "Test description",
-        "date": "2025-03-17", // Định dạng ISO
-        "categoryId": "cat123",
+        "description": "Các mặt hàng liên quan đến thực phẩm",
+        "date": "2025-03-17", 
+        "categoryId": "678d18f502455271e95277b4",
       };
 
       await controller.createExpense(
-        storeName: 'Test Store',
+        storeName: 'quan an thien tan',
         totalAmount: 100.0,
-        description: 'Test description',
+        description: 'Các mặt hàng liên quan đến thực phẩm',
         date: '2025-03-17',
-        categoryId: 'cat123',
+        categoryId: '678d18f502455271e95277b4',
       );
 
       verify(mockHttpClient.post(
@@ -493,51 +571,51 @@ void main() {
         () => controller.createExpense(
           storeName: '',
           totalAmount: 100.0,
-          description: 'Test description',
+          description: 'Các mặt hàng liên quan đến thực phẩm',
           date: '2025-03-17',
-          categoryId: 'cat123',
+          categoryId: '678d18f502455271e95277b4',
         ),
         throwsException,
       );
 
       expect(
         () => controller.createExpense(
-          storeName: 'Test Store',
+          storeName: 'quan an thien tan',
           totalAmount: 0.0,
-          description: 'Test description',
+          description: 'Các mặt hàng liên quan đến thực phẩm',
           date: '2025-03-17',
-          categoryId: 'cat123',
+          categoryId: '678d18f502455271e95277b4',
         ),
         throwsException,
       );
 
       expect(
         () => controller.createExpense(
-          storeName: 'Test Store',
+          storeName: 'quan an thien tan',
           totalAmount: 100.0,
           description: '',
           date: '2025-03-17',
-          categoryId: 'cat123',
+          categoryId: '678d18f502455271e95277b4',
         ),
         throwsException,
       );
 
       expect(
         () => controller.createExpense(
-          storeName: 'Test Store',
+          storeName: 'quan an thien tan',
           totalAmount: 100.0,
-          description: 'Test description',
+          description: 'Các mặt hàng liên quan đến thực phẩm',
           date: '',
-          categoryId: 'cat123',
+          categoryId: '678d18f502455271e95277b4',
         ),
         throwsException,
       );
 
       expect(
         () => controller.createExpense(
-          storeName: 'Test Store',
+          storeName: 'quan an thien tan',
           totalAmount: 100.0,
-          description: 'Test description',
+          description: 'Các mặt hàng liên quan đến thực phẩm',
           date: '2025-03-17',
           categoryId: '',
         ),
@@ -553,11 +631,11 @@ void main() {
           .thenAnswer((_) async => http.Response('{}', 201));
 
       await controller.createExpense(
-        storeName: 'Test Store',
+        storeName: 'quan an thien tan',
         totalAmount: 100.0,
-        description: 'Test description',
+        description: 'Các mặt hàng liên quan đến thực phẩm',
         date: '17/03/2025',
-        categoryId: 'cat123',
+        categoryId: '678d18f502455271e95277b4',
       );
 
       final captured = verify(mockHttpClient.post(
@@ -581,11 +659,11 @@ void main() {
 
       expect(
         () => controller.createExpense(
-          storeName: 'Test Store',
+          storeName: 'quan an thien tan',
           totalAmount: 100.0,
-          description: 'Test description',
+          description: 'Các mặt hàng liên quan đến thực phẩm',
           date: '2025-03-17',
-          categoryId: 'cat123',
+          categoryId: '678d18f502455271e95277b4',
         ),
         throwsException,
       );
@@ -600,17 +678,16 @@ void main() {
 
       expect(
         () => controller.createExpense(
-          storeName: 'Test Store',
+          storeName: 'quan an thien tan',
           totalAmount: 100.0,
-          description: 'Test description',
+          description: 'Các mặt hàng liên quan đến thực phẩm',
           date: '2025-03-17',
-          categoryId: 'cat123',
+          categoryId: '678d18f502455271e95277b4',
         ),
         throwsException,
       );
     });
   });
-
   group('Scan Expense Controller', () {
     test('Lưu hình ảnh và trả về url', () async {
       final Uint8List mockImageBytes = Uint8List.fromList([0, 1, 2, 3]);
@@ -621,8 +698,12 @@ void main() {
           (_) async => 'https://storage.googleapis.com/testflutter/test.png');
 
       await controller.saveImage(mockCloudApi);
-      expect(controller.imageUrl, contains('test.png'));
-      expect(controller.isUploaded, true);
+
+      bool success = (controller.imageUrl?.contains('test.png') ?? false) &&
+      controller.isUploaded == true;
+
+      print('Test "Lưu hình ảnh và trả về url": $success');
+      expect(success, true);
     });
 
     test('Phân tích từ hình ảnh', () async {
@@ -633,15 +714,20 @@ void main() {
           jsonEncode({'status': 'success', 'text': 'Sample extracted text'}));
 
       await controller.extractText(mockCloudApi);
-      expect(controller.extractedText, contains('Sample extracted text'));
+
+      bool success = controller.extractedText.contains('Sample extracted text');
+
+      print('Test "Phân tích từ hình ảnh": $success');
+      expect(success, true);
     });
+
     test('Nên thêm chi phí thành công', () async {
       controller.userId = '678cf5b1e729fb9da673725c';
-      final storeName = 'Test Store';
+      final storeName = 'quan an thien tan';
       final totalAmount = 150000.0;
       final description = 'Test purchase';
       final date = '25/02/2025';
-      final categoryId = 'food';
+      final categoryId = '678d18f502455271e95277b4';
 
       final mockResponse = http.Response('{}', 201);
 
@@ -659,18 +745,22 @@ void main() {
         categoryId: categoryId,
       );
 
-      verify(mockHttpClient.post(
+      final captured = verify(mockHttpClient.post(
         Uri.parse("https://backend-bdclpm.onrender.com/api/expenses"),
         headers: {"Content-Type": "application/json"},
-        body: jsonEncode({
-          "userId": '678cf5b1e729fb9da673725c',
-          "storeName": storeName,
-          "totalAmount": totalAmount,
-          "description": description,
-          "date": "2025-02-25",
-          "categoryId": categoryId,
-        }),
-      )).called(1);
+        body: captureAnyNamed('body'),
+      )).captured.single;
+
+      final decodedBody = jsonDecode(captured);
+      bool success = decodedBody['userId'] == '678cf5b1e729fb9da673725c' &&
+          decodedBody['storeName'] == storeName &&
+          decodedBody['totalAmount'] == totalAmount &&
+          decodedBody['description'] == description &&
+          decodedBody['date'] == '2025-02-25' &&
+          decodedBody['categoryId'] == categoryId;
+
+      print('Test "Nên thêm chi phí thành công": $success');
+      expect(success, true);
     });
   });
 }
