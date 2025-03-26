@@ -15,6 +15,7 @@ final AuthClientWrapper authClientWrapper;
   int? timestamp;
   CloudApi(this.authClientWrapper);
 
+
    Future<void> initializeClient() async {
     if (authClientWrapper == null) {
       throw Exception("AuthClientWrapper is required");
@@ -46,76 +47,72 @@ final AuthClientWrapper authClientWrapper;
         ));
   }
 
-  Future<String> saveAndGetUrl(String name, Uint8List imgBytes) async {
-    await initializeClient();
+Future<String> saveAndGetUrl(String name, Uint8List imgBytes) async {
+  await initializeClient();
 
-    var storage = Storage(client!, 'testflutter');
-    var bucket = storage.bucket('testflutter');
+  var storage = Storage(client!, 'testflutter');
+  var bucket = storage.bucket('testflutter');
 
-    timestamp = DateTime.now().millisecondsSinceEpoch;
-    final type = lookupMimeType(name);
+  timestamp = DateTime.now().millisecondsSinceEpoch;
+  final type = lookupMimeType(name);
 
-    final objectInfo = await bucket.writeBytes(name, imgBytes,
-        metadata: ObjectMetadata(
-          contentType: type,
-          custom: {'timestamp': '$timestamp'},
-        ));
+  final objectInfo = await bucket.writeBytes(name, imgBytes,
+      metadata: ObjectMetadata(
+        contentType: type,
+        custom: {'timestamp': '$timestamp'},
+      ));
 
-    final fileUrl =
-        'https://storage.googleapis.com/testflutter/${objectInfo.name}';
-    return fileUrl;
+  if (objectInfo.name == null || objectInfo.name!.isEmpty) {
+    print('fileUrl không hợp lệ: objectInfo.name = ${objectInfo.name}');
+    throw Exception('Lỗi: fileUrl không hợp lệ');
   }
+
+  final fileUrl =
+      'https://storage.googleapis.com/testflutter/${objectInfo.name}';
+  print('fileUrl hợp lệ: $fileUrl');
+
+  return fileUrl;
+}
+
 
   Future<String> extractTextFromImage(Uint8List imageBytes) async {
-    await initializeClient();
+  await initializeClient();
+  String base64Image = base64Encode(imageBytes);
+  var visionApi = vision.VisionApi(client!);
 
-    String base64Image = base64Encode(imageBytes);
+  var image = vision.Image(content: base64Image);
+  var request = vision.AnnotateImageRequest(
+    image: image,
+    features: [vision.Feature(type: 'DOCUMENT_TEXT_DETECTION')],
+  );
 
-    var visionApi = vision.VisionApi(client!);
+  var batchRequest = vision.BatchAnnotateImagesRequest(requests: [request]);
 
-    var image = vision.Image(content: base64Image);
-    var request = vision.AnnotateImageRequest(
-      image: image,
-      features: [vision.Feature(type: 'DOCUMENT_TEXT_DETECTION')],
-    );
+  try {
+    var batchResponse = await visionApi.images.annotate(batchRequest);
 
-    var batchRequest = vision.BatchAnnotateImagesRequest(requests: [request]);
+    debugPrint('Vision API Raw Response: ${jsonEncode(batchResponse.toJson())}');
 
-    try {
-      var batchResponse = await visionApi.images.annotate(batchRequest);
+    if (batchResponse.responses != null && batchResponse.responses!.isNotEmpty) {
+      var response = batchResponse.responses!.first;
+      
+      if (response.textAnnotations != null && response.textAnnotations!.isNotEmpty) {
+        var text = response.textAnnotations!.first.description ?? 'No text found';
+        
+        debugPrint('Extracted Text: $text');
 
-      if (batchResponse.responses != null &&
-          batchResponse.responses!.isNotEmpty) {
-        var response = batchResponse.responses!.first;
+        var backendResponse = await sendToBackend(text);
 
-        if (response.textAnnotations != null &&
-            response.textAnnotations!.isNotEmpty) {
-          var text =
-              response.textAnnotations!.first.description ?? 'No text found';
-          var backendResponse = await sendToBackend(text);
+        debugPrint('Backend Raw Response: $backendResponse');
 
-          return backendResponse;
-        } else {
-          return jsonEncode({
-            'status': 'error',
-            'message': 'No text found',
-          });
-        }
-      } else {
-        return jsonEncode({
-          'status': 'error',
-          'message': 'No text found',
-        });
+        return backendResponse;
       }
-    } catch (e) {
-      return jsonEncode({
-        'status': 'error',
-        'message': 'Error extracting text: $e',
-      });
     }
+    return jsonEncode({'status': 'error', 'message': 'No text found'});
+  } catch (e) {
+    return jsonEncode({'status': 'error', 'message': 'Error extracting text: $e'});
   }
-
-
+}
 
  static Future<String> sendToBackend(String extractedText, {http.Client? httpClient}) async {
   final url = Uri.parse('https://backend-bdclpm.onrender.com/api/gemini/process');

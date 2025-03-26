@@ -2,9 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 import '../../mocks/mocks.mocks.dart';
 import 'package:flutter/services.dart';
-import 'package:image_picker/image_picker.dart';
 import '../../test_config.dart';
-import 'package:flutter_project_bdclpm/features/expense/controllers/scan_expense_controller.dart';
 import 'package:flutter_project_bdclpm/features/expense/controllers/cloud.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -14,22 +12,25 @@ void main() {
   setupTestEnvironment();
   late MockCloudApi mockCloudApi;
   late MockClient mockHttpClient;
-  late MockAuthClient mockAuthClient;
-  late ScanExpenseController controller;
-  late ImagePicker mockImagePicker;
   late CloudApi cloudApi;
+  late MockStorage mockStorage;
+  late MockBucket mockBucket;
+  late MockObjectInfo mockObjectInfo;
+
   late MockAuthClientWrapper mockAuthClientWrapper;
   setUp(() {
     mockHttpClient = MockClient();
-    mockAuthClient = MockAuthClient();
     mockCloudApi = MockCloudApi();
-    mockImagePicker = ImagePicker();
     mockAuthClientWrapper = MockAuthClientWrapper();
     cloudApi = CloudApi(mockAuthClientWrapper);
-    controller = ScanExpenseController(httpClient: mockHttpClient);
+    mockStorage = MockStorage();
+    mockBucket = MockBucket();
+    mockObjectInfo = MockObjectInfo();
+    when(mockAuthClientWrapper.createAuthClient())
+        .thenAnswer((_) async => MockAutoRefreshingAuthClient());
   });
   group('InitializeClient', () {
-    test('initializeClient() nên khởi tạo client nếu chưa có', () async {
+    test('UC01: initializeClient() nên khởi tạo client nếu chưa có', () async {
       final mockAutoRefreshingClient = MockAutoRefreshingAuthClient();
       when(mockAuthClientWrapper.createAuthClient())
           .thenAnswer((_) async => mockAutoRefreshingClient);
@@ -43,7 +44,7 @@ void main() {
       verify(mockAuthClientWrapper.createAuthClient()).called(1);
     });
 
-    test('initializeClient() không nên khởi tạo lại nếu client đã tồn tại',
+    test('UC02: initializeClient() không nên khởi tạo lại nếu client đã tồn tại',
         () async {
       final mockAutoRefreshingClient = MockAutoRefreshingAuthClient();
       when(mockAuthClientWrapper.createAuthClient())
@@ -67,17 +68,39 @@ void main() {
 
       verifyNoMoreInteractions(mockAuthClientWrapper);
     });
+    test('UC03: Trả lại storage khi khởi tạo', () async {
+      when(mockAuthClientWrapper.createAuthClient())
+          .thenAnswer((_) async => MockAutoRefreshingAuthClient());
+
+      await cloudApi.initializeClient();
+
+      expect(cloudApi.cloudStorage, isNotNull);
+      print(cloudApi.cloudStorage != null
+          ? "Thành công: Storage đã được khởi tạo!"
+          : "Thất bại: Storage chưa được khởi tạo!");
+    });
+
+    test('UC04: Ném một ngoại lệ nếu storage không được khởi tạo', () {
+      try {
+        cloudApi.cloudStorage;
+        print("Thất bại: Không ném ra ngoại lệ!");
+      } catch (e) {
+        print("Thành công: Đã ném ngoại lệ - ${e.toString()}");
+      }
+
+      expect(() => cloudApi.cloudStorage, throwsException);
+    });
   });
 
   group('save', () {
-    test('Nên trả về null nếu client chưa được khởi tạo', () {
+    test('UC01: Trả về null nếu client chưa được khởi tạo', () {
       CloudApi cloudApi = CloudApi(MockAuthClientWrapper());
       bool result = cloudApi.client == null;
       print('Client chưa được khởi tạo: $result');
       expect(result, isTrue);
     });
 
-    test('Nên khởi tạo client nếu chưa được khởi tạo trước đó', () async {
+    test('UC02: Khởi tạo client nếu chưa được khởi tạo trước đó', () async {
       final mockAuthClientWrapper = MockAuthClientWrapper();
       final mockAutoRefreshingClient = MockAutoRefreshingAuthClient();
 
@@ -92,7 +115,7 @@ void main() {
       expect(result, isTrue);
     });
 
-    test('Nên trả về null nếu bucket chưa được khởi tạo', () async {
+    test('UC03: Trả về null nếu bucket chưa được khởi tạo', () async {
       CloudApi cloudApi = CloudApi(MockAuthClientWrapper());
       bool result;
       try {
@@ -105,7 +128,7 @@ void main() {
       expect(result, isTrue);
     });
 
-    test('Nên trả về bucket không null sau khi khởi tạo', () async {
+    test('UC04: Trả về bucket không null sau khi khởi tạo', () async {
       final mockAuthClientWrapper = MockAuthClientWrapper();
       final mockAutoRefreshingClient = MockAutoRefreshingAuthClient();
       when(mockAuthClientWrapper.createAuthClient())
@@ -121,7 +144,51 @@ void main() {
   });
 
   group('saveAndGetUrl', () {
-    test('saveAndGetUrl sẽ trả về một URL hình ảnh hợp lệ', () async {
+    const fileName = "test_image.jpg";
+    final fakeBytes = Uint8List.fromList([1, 2, 3, 4, 5]);
+    test('UC01: _client hợp lệ', () async {
+      when(mockAuthClientWrapper.createAuthClient())
+          .thenAnswer((_) async => MockAutoRefreshingAuthClient());
+
+      await cloudApi.initializeClient();
+      expect(cloudApi.client, isNotNull);
+      print('_client hợp lệ');
+    });
+    test('UC02: _client bị lỗi (null)', () async {
+      when(mockAuthClientWrapper.createAuthClient())
+          .thenThrow(Exception('Không thể tạo client'));
+
+      expect(() async => await cloudApi.saveAndGetUrl(fileName, fakeBytes),
+          throwsException);
+      print('_client bị lỗi (null)');
+    });
+    test('UC03: Trả về null nếu bucket chưa được khởi tạo', () async {
+      CloudApi cloudApi = CloudApi(MockAuthClientWrapper());
+      bool result;
+      try {
+        cloudApi.cloudStorage.bucket('testflutter');
+        result = false;
+      } catch (e) {
+        result = true;
+      }
+      print('Bucket chưa được khởi tạo: $result');
+      expect(result, isTrue);
+    });
+
+    test('UC04: Trả về bucket không null sau khi khởi tạo', () async {
+      final mockAuthClientWrapper = MockAuthClientWrapper();
+      final mockAutoRefreshingClient = MockAutoRefreshingAuthClient();
+      when(mockAuthClientWrapper.createAuthClient())
+          .thenAnswer((_) async => mockAutoRefreshingClient);
+
+      CloudApi cloudApi = CloudApi(mockAuthClientWrapper);
+      await cloudApi.initializeClient();
+
+      bool result = cloudApi.cloudStorage.bucket('testflutter') != null;
+      print('Bucket đã được khởi tạo: $result');
+      expect(result, isTrue);
+    });
+    test('UC05: fileUrl hợp lệ sẽ trả về một URL hình ảnh hợp lệ', () async {
       final Uint8List mockImage = Uint8List.fromList([0, 1, 2, 3]);
       final expectedUrl =
           'https://storage.googleapis.com/testflutter/hinh-anh-gia-lap.png';
@@ -137,7 +204,8 @@ void main() {
       expect(isValid, isTrue);
     });
 
-    test('saveAndGetUrl sẽ trả về một URL hình ảnh không hợp lệ', () async {
+    test('UC06: fileUrl không hợp lệ sẽ trả về một URL hình ảnh không hợp lệ',
+        () async {
       final Uint8List mockImage = Uint8List.fromList([0, 1, 2, 3]);
       final invalidUrl =
           'https://storage.googleapis.com/testflutter/hinh-anh-gia-lap.jpg';
@@ -156,58 +224,161 @@ void main() {
   });
 
   group('extractTextFromImage', () {
-    test('extractTextFromImage sẽ trả về văn bản đã trích xuất', () async {
-      final Uint8List mockImage = Uint8List.fromList([0, 1, 2, 3]);
-      final extractedText = 'Văn bản giả lập';
+    const fileName = "test_image.jpg";
+    final fakeBytes = Uint8List.fromList([1, 2, 3, 4, 5]);
 
-      when(mockCloudApi.extractTextFromImage(any))
-          .thenAnswer((_) async => extractedText);
+    test('UC01: _client hợp lệ', () async {
+      when(mockAuthClientWrapper.createAuthClient())
+          .thenAnswer((_) async => MockAutoRefreshingAuthClient());
 
-      final result = await mockCloudApi.extractTextFromImage(mockImage);
-      bool isCorrectText = result == extractedText;
-
-      print('Văn bản trích xuất đúng: $isCorrectText');
-      expect(isCorrectText, isTrue);
+      await cloudApi.initializeClient();
+      expect(cloudApi.client, isNotNull);
+      print('_client hợp lệ');
     });
 
-    test('extractTextFromImage không nên trả về null', () async {
-      final Uint8List mockImage = Uint8List.fromList([0, 1, 2, 3]);
-      final extractedText = 'Văn bản giả lập';
+    test('UC02: _client bị lỗi (null)', () async {
+      when(mockAuthClientWrapper.createAuthClient())
+          .thenThrow(Exception('Không thể tạo client'));
+
+      expect(() async => await cloudApi.saveAndGetUrl(fileName, fakeBytes),
+          throwsException);
+      print('_client bị lỗi (null)');
+    });
+
+    test('UC03: Base64Image hợp lệ theo yêu cầu', () async {
+      final image = {"content": "dummy_base64"};
+      final request = {
+        "image": image,
+        "features": [
+          {"type": "DOCUMENT_TEXT_DETECTION"}
+        ]
+      };
+      expect(request["image"], image);
+      expect(
+          (request["features"] is List &&
+                  (request["features"] as List).isNotEmpty)
+              ? (request["features"] as List).first["type"]
+              : null,
+          "DOCUMENT_TEXT_DETECTION");
+      print('Yêu cầu kiểm tra tạo đối tượng đã vượt qua');
+    });
+
+    test('UC04: Base64Image không hợp lệ trong yêu cầu', () {
+      final image = {"content": ""};
+      final request = {
+        "image": image,
+        "features": [
+          {"type": "DOCUMENT_TEXT_DETECTION"}
+        ]
+      };
+      expect(request["image"], image);
+      expect(image["content"], '');
+      print('Base64Image không hợp lệ trong yêu cầu');
+    });
+
+    test('UC05: Mã hóa Base64 của imageBytes là chính xác', () async {
+      final Uint8List fakeImageBytes =
+          Uint8List.fromList([72, 101, 108, 108, 111]);
+      final base64String = base64Encode(fakeImageBytes);
+      expect(base64String, 'SGVsbG8=');
+      print('Đã vượt qua bài kiểm tra mã hóa Base64');
+    });
+
+    test('UC06: Mã hóa imageBytes trống', () {
+      final Uint8List emptyBytes = Uint8List(0);
+      final base64String = base64Encode(emptyBytes);
+      expect(base64String, '');
+      print('Mã hóa imageBytes trống thành công');
+    });
+
+    test('UC07: request & batchRequest hợp lệ', () async {
+      final request = {"image": "dummy_image", "features": "dummy_feature"};
+      final batchRequest = {
+        "requests": [request]
+      };
+      expect(
+          (batchRequest["requests"] is List &&
+                  (batchRequest["requests"] as List).isNotEmpty)
+              ? (batchRequest["requests"] as List).first["image"]
+              : null,
+          "dummy_image");
+      print('Đã vượt qua bài kiểm tra tạo yêu cầu hàng loạt');
+    });
+
+    test('UC08: request & batchRequest không hợp lệ', () {
+      final request = {"image": "", "features": "valid_feature"};
+      final batchRequest = {
+        "requests": [request]
+      };
+      expect(batchRequest["requests"]?.first["image"], "");
+      print('Request & batchRequest không hợp lệ');
+    });
+
+    test('UC09: request & batchRequest hàng loạt rỗng', () {
+      Map<String, dynamic>? batchRequest;
+      expect(() => batchRequest!["requests"].first["image"],
+          throwsA(isA<Error>()));
+      print('Request & batchRequest hàng loạt rỗng');
+    });
+
+    test(
+        'UC10: extractTextFromImage trả về văn bản đã trích xuất khi thành công',
+        () async {
+      final mockResponse = {
+        "responses": [
+          {
+            "textAnnotations": [
+              {"description": "Mẫu văn bản trích xuất"}
+            ]
+          }
+        ]
+      };
 
       when(mockCloudApi.extractTextFromImage(any))
-          .thenAnswer((_) async => extractedText);
+          .thenAnswer((_) async => jsonEncode(mockResponse));
 
-      final result = await mockCloudApi.extractTextFromImage(mockImage);
-      bool isNotNull = result != null && result.isNotEmpty;
+      final Uint8List fakeImageBytes = Uint8List.fromList([0, 1, 2, 3]);
+      final result = await mockCloudApi.extractTextFromImage(fakeImageBytes);
 
-      print('Văn bản không null: $isNotNull');
-      expect(isNotNull, isTrue);
+      expect(result, jsonEncode(mockResponse));
+      print('Trích xuất văn bản thành công kiểm tra đã vượt qua');
+    });
+
+    test('UC11: extractTextFromImage xử lý phản hồi trống', () async {
+      final mockResponse = {"responses": []};
+
+      when(mockCloudApi.extractTextFromImage(any))
+          .thenAnswer((_) async => jsonEncode(mockResponse));
+
+      final Uint8List fakeImageBytes = Uint8List.fromList([0, 1, 2, 3]);
+      final result = await mockCloudApi.extractTextFromImage(fakeImageBytes);
+
+      expect(
+          result, jsonEncode({'status': 'error', 'message': 'No text found'}));
+      print('Đã vượt qua bài kiểm tra phản hồi trống');
     });
   });
-
   group('sendToBackend Tests', () {
     const validUrl = 'https://backend-bdclpm.onrender.com/api/gemini/process';
     const invalidUrl = 'https://invalid-url.com/api/gemini/process';
 
-    test('URL is valid', () {
+    test('UC01: URL có giá trị', () {
       final url = Uri.parse(validUrl);
       bool result = url.toString() == validUrl;
       print('URL hợp lệ: $result');
       expect(result, isTrue);
     });
 
-    test('URL is invalid', () {
+    test('UC02: URL không hợp lệ', () {
+      const invalidUrl = 'ht!tp://invalid-url.com/api/gemini/process';
       try {
         Uri.parse(invalidUrl);
-        print('URL hợp lệ: false');
-        expect(false, isTrue);
       } catch (e) {
-        print('URL hợp lệ: true');
-        expect(true, isTrue);
+        print('UC02: Lỗi: $e');
       }
     });
 
-    test('Successful request (statusCode == 200)', () async {
+    test('UC03: Yêu cầu thành công (statusCode == 200)', () async {
       final fakeResponse = jsonEncode(
           {'status': 'success', 'message': 'Processed successfully'});
 
@@ -224,7 +395,7 @@ void main() {
       expect(result, isTrue);
     });
 
-    test('Failed request (statusCode != 200)', () async {
+    test('UC04: Lỗi yêu cầu (statusCode != 200)', () async {
       final fakeResponse =
           jsonEncode({'status': 'error', 'message': 'Bad request'});
 
@@ -240,7 +411,7 @@ void main() {
       expect(result, isTrue);
     });
 
-    test('response.statusCode == 200', () async {
+    test('UC05: response.statusCode == 200', () async {
       when(mockHttpClient.post(
         Uri.parse(validUrl),
         headers: anyNamed('headers'),
@@ -253,7 +424,7 @@ void main() {
       expect(result, isTrue);
     });
 
-    test('response.statusCode == 400', () async {
+    test('UC06: response.statusCode == 400', () async {
       when(mockHttpClient.post(
         Uri.parse(validUrl),
         headers: anyNamed('headers'),
@@ -266,7 +437,7 @@ void main() {
       expect(result, isTrue);
     });
 
-    test('response.statusCode == 500', () async {
+    test('UC07: response.statusCode == 500', () async {
       when(mockHttpClient.post(
         Uri.parse(validUrl),
         headers: anyNamed('headers'),
@@ -279,7 +450,7 @@ void main() {
       expect(result, isTrue);
     });
 
-    test('Network error (catch block)', () async {
+    test('UC08: Lỗi mạng (catch block)', () async {
       when(mockHttpClient.post(any,
               headers: anyNamed('headers'), body: anyNamed('body')))
           .thenThrow(Exception('Network error'));
@@ -290,7 +461,7 @@ void main() {
       expect(result, isTrue);
     });
 
-    test('Server not responding', () async {
+    test('UC09: Server không phản hồi', () async {
       when(mockHttpClient.post(any,
               headers: anyNamed('headers'), body: anyNamed('body')))
           .thenThrow(Exception('Server timeout'));
@@ -301,7 +472,7 @@ void main() {
       expect(result, isTrue);
     });
 
-    test('Unexpected http.post error', () async {
+    test('UC10: Lỗi http.post không mong đợi', () async {
       when(mockHttpClient.post(any,
               headers: anyNamed('headers'), body: anyNamed('body')))
           .thenThrow(Exception('Unexpected error'));

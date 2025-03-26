@@ -23,8 +23,6 @@ class _LoginPageState extends State<LoginPage> {
     super.initState();
     _initializeAuthController();
   }
-
-  /// Hàm khởi tạo `AuthController` đúng cách
   Future<void> _initializeAuthController() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
@@ -32,7 +30,7 @@ class _LoginPageState extends State<LoginPage> {
         firebaseAuth: FirebaseAuth.instance,
         googleSignIn: GoogleSignIn(),
         httpClient: http.Client(),
-        prefs: prefs, // Đã khởi tạo đúng
+        prefs: prefs, 
       );
       isLoading = false;
     });

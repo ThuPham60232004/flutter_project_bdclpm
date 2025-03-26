@@ -27,6 +27,7 @@ import 'package:flutter_project_bdclpm/features/expense/data/auth_client_wrapper
   auth.AutoRefreshingAuthClient,
   Storage,
   Bucket,
+  ObjectInfo,
   vision.VisionApi,
   vision.ImagesResource,
   UserMetadata,

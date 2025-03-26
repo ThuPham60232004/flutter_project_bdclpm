@@ -10,8 +10,9 @@ import 'core/routes/app_routes.dart';
 import 'core/routes/route_names.dart';
 import 'core/themes/app_theme.dart';
 import 'app.dart';
-
+import 'package:flutter_driver/driver_extension.dart';
 Future<void> main() async {
+  enableFlutterDriverExtension();
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   try {
