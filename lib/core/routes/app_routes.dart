@@ -14,11 +14,11 @@ import 'package:flutter_project_bdclpm/features/listcategory/presentation/expens
 import 'package:flutter_project_bdclpm/features/income/presentation/income.dart';
 import 'package:flutter_project_bdclpm/features/income/presentation/echarts.dart';
 import 'route_names.dart';
-
+import 'package:flutter_project_bdclpm/features/auth/controllers/auth_controller.dart';
 class AppRoutes {
-  static final routes = <String, WidgetBuilder>{
+  static Map<String, WidgetBuilder> getRoutes(AuthController authController){return{
     RouteNames.home: (context) => const HomePage(),
-    RouteNames.login: (context) => const LoginPage(),
+    RouteNames.login: (context) =>  LoginPage(authController: authController),
     RouteNames.scan: (context) => ScanPage(),
     RouteNames.type: (context) => TypePage(),
     RouteNames.manualvoice: (context) => ManualVoicePage(),
@@ -31,5 +31,6 @@ class AppRoutes {
     RouteNames.income: (context) => IncomeScreen(),
     RouteNames.historyincome: (context) => IncomeHistoryScreen(),
     RouteNames.echarts: (context) => ExpenseStatisticsScreen(),
-  };
+    };
+  }
 }

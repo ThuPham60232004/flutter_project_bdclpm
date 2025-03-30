@@ -30,7 +30,6 @@ class _CustomDrawerState extends State<CustomDrawer> {
         firebaseAuth: FirebaseAuth.instance,
         googleSignIn: GoogleSignIn(),
         httpClient: http.Client(),
-        prefs: prefs,
       );
       isLoading = false;
     });

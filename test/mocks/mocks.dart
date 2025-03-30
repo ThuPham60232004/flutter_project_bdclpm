@@ -1,6 +1,8 @@
 import 'package:mockito/annotations.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'dart:io';
+import 'package:mockito/mockito.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
@@ -24,9 +26,11 @@ import 'package:flutter_project_bdclpm/features/expense/data/auth_client_wrapper
   auth.AuthClient,
   User,
   UserCredential,
+  BuildContext,
   auth.AutoRefreshingAuthClient,
   Storage,
   Bucket,
+  NavigatorObserver,
   ObjectInfo,
   vision.VisionApi,
   vision.ImagesResource,
@@ -37,6 +41,7 @@ import 'package:flutter_project_bdclpm/features/expense/data/auth_client_wrapper
   http.Client,
   SharedPreferences,
   stt.SpeechToText,
+  File,
   NavigatorState,
   GlobalKey,
   ScaffoldMessengerState,

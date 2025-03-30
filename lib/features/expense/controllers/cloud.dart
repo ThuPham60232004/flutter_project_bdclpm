@@ -15,7 +15,6 @@ final AuthClientWrapper authClientWrapper;
   int? timestamp;
   CloudApi(this.authClientWrapper);
 
-
    Future<void> initializeClient() async {
     if (authClientWrapper == null) {
       throw Exception("AuthClientWrapper is required");

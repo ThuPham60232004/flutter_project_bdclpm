@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_project_bdclpm/core/themes/app_theme.dart';
 import 'package:flutter_project_bdclpm/core/routes/app_routes.dart';
 import 'package:flutter_project_bdclpm/core/routes/route_names.dart';
-
+import 'package:flutter_project_bdclpm/features/auth/controllers/auth_controller.dart';
 class App extends StatefulWidget {
-  const App({Key? key}) : super(key: key);
+  final AuthController authController;
+
+  const App({Key? key, required this.authController}) : super(key: key);
 
   @override
   State<App> createState() => _AppState();
@@ -15,8 +17,7 @@ class _AppState extends State<App> {
 
   void _toggleTheme() {
     setState(() {
-      _themeMode =
-          _themeMode == ThemeMode.light ? ThemeMode.dark : ThemeMode.light;
+      _themeMode = _themeMode == ThemeMode.light ? ThemeMode.dark : ThemeMode.light;
     });
   }
 
@@ -29,7 +30,7 @@ class _AppState extends State<App> {
       darkTheme: AppTheme.darkTheme,
       themeMode: _themeMode,
       initialRoute: RouteNames.home,
-      routes: AppRoutes.routes,
+      routes: AppRoutes.getRoutes(widget.authController), 
       builder: (context, child) {
         return AppInheritedTheme(
           themeMode: _themeMode,

@@ -35,7 +35,6 @@ void main() {
       firebaseAuth: mockFirebaseAuth,
       googleSignIn: mockGoogleSignIn,
       httpClient: mockHttpClient,
-      prefs: sharedPreferences,
     );
 
     when(mockGoogleSignIn.signIn())

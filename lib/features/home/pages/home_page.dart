@@ -165,15 +165,13 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: isDarkMode ? Colors.black : Colors.white,
-        elevation: 2,
-        actions: [
-          IconButton(
-            icon: Icon(isDarkMode ? Icons.light_mode : Icons.dark_mode),
-            onPressed: toggleTheme,
-            color: isDarkMode ? Colors.white : Colors.black,
+        backgroundColor: const Color.fromARGB(255, 255, 255, 255),
+        leading: Builder(
+          builder: (context) => IconButton(
+            icon: const Icon(Icons.menu),
+            onPressed: () => Scaffold.of(context).openDrawer(),
           ),
-        ],
+        ),
       ),
       drawer: CustomDrawer(),
       body: isLoading

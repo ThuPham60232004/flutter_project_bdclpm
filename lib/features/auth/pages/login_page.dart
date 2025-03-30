@@ -2,48 +2,15 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_project_bdclpm/features/auth/controllers/auth_controller.dart';
 import 'package:iconly/iconly.dart';
-import 'package:google_sign_in/google_sign_in.dart';
-import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
 import '../../home/pages/home_page.dart';
 
-class LoginPage extends StatefulWidget {
-  const LoginPage({super.key});
+class LoginPage extends StatelessWidget {
+  final AuthController authController;
 
-  @override
-  State<LoginPage> createState() => _LoginPageState();
-}
-
-class _LoginPageState extends State<LoginPage> {
-  AuthController? authController;
-  bool isLoading = true;
-
-  @override
-  void initState() {
-    super.initState();
-    _initializeAuthController();
-  }
-  Future<void> _initializeAuthController() async {
-    final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      authController = AuthController(
-        firebaseAuth: FirebaseAuth.instance,
-        googleSignIn: GoogleSignIn(),
-        httpClient: http.Client(),
-        prefs: prefs, 
-      );
-      isLoading = false;
-    });
-  }
+  const LoginPage({super.key, required this.authController});
 
   @override
   Widget build(BuildContext context) {
-    if (isLoading || authController == null) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
-    }
-
     return Scaffold(
       body: SafeArea(
         child: Center(
@@ -82,11 +49,11 @@ class _LoginPageState extends State<LoginPage> {
                 FilledButton.tonalIcon(
                   onPressed: () async {
                     try {
-                      final user = await authController!.loginWithGoogle();
-                      if (user != null && mounted) {
+                      final user = await authController.loginWithGoogle();
+                      if (user != null && context.mounted) {
                         Navigator.of(context).pushReplacement(
                           MaterialPageRoute(
-                              builder: (context) => const HomePage()),
+                              builder: (context) => const HomePage(key: Key('homePage'))),
                         );
                       }
                     } on FirebaseAuthException catch (error) {
@@ -100,6 +67,7 @@ class _LoginPageState extends State<LoginPage> {
                     }
                   },
                   icon: const Icon(IconlyLight.login),
+                  key: Key('google_sign_in_button'),
                   label: const Text("Đăng nhập với Google"),
                 ),
                 const SizedBox(height: 20),
