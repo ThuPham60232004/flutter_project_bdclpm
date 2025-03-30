@@ -20,6 +20,7 @@ import 'package:flutter_project_bdclpm/features/expense/controllers/cloud.dart';
 import 'package:googleapis_auth/auth_io.dart' as auth;
 import 'package:googleapis/vision/v1.dart' as vision;
 import 'package:gcloud/storage.dart';
+import 'package:flutter_project_bdclpm/features/expense/controllers/manual_voice_controllers.dart';
 import 'package:flutter_project_bdclpm/features/expense/data/auth_client_wrapper.dart';
 @GenerateMocks([
   FirebaseAuth,
@@ -67,6 +68,8 @@ import 'package:flutter_project_bdclpm/features/expense/data/auth_client_wrapper
   NotificationDetails,
   ScanExpenseController,
   CloudApi,
-  AuthClientWrapper
+  AuthClientWrapper,
+  ExpenseManager,
+  TextEditingController
 ])
 void main() {}

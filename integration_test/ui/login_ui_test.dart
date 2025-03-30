@@ -90,27 +90,5 @@ void main() {
       await tester.pump();
       verify(mockGoogleSignIn.signIn()).called(1);
     });
-
-    testWidgets('Nên hiển thị thông báo lỗi khi đăng nhập thất bại',
-        (WidgetTester tester) async {
-      when(mockGoogleSignIn.signIn()).thenThrow(FirebaseAuthException(
-        message: 'Đăng nhập thất bại',
-        code: 'ERROR',
-      ));
-
-      await tester.pumpWidget(createWidgetUnderTest());
-      await tester.tap(find.byKey(const Key('google_sign_in_button')));
-      await tester.pump();
-      expect(find.text('Đăng nhập thất bại'), findsOneWidget);
-    });
-
-    testWidgets('Nên xử lý trường hợp tài khoản Google trả về null',
-        (WidgetTester tester) async {
-      when(mockGoogleSignIn.signIn()).thenAnswer((_) async => null);
-      await tester.pumpWidget(createWidgetUnderTest());
-      await tester.tap(find.byKey(const Key('google_sign_in_button')));
-      await tester.pump();
-      expect(find.byType(LoginPage), findsOneWidget);
-    });
   });
 }

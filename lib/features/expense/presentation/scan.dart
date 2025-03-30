@@ -38,13 +38,14 @@ class _ScanPageState extends State<ScanPage> {
           await rootBundle.loadString('assets/key/credentials.json');
       final authWrapper = AuthClientWrapper(credentialsJson);    
       api = CloudApi(authWrapper);
-      debugPrint('✅ API initialized: $api');
+      debugPrint('API initialized: $api');
     } catch (e, stackTrace) {
-      debugPrint('❌ Error initializing API: $e\n$stackTrace');
+      debugPrint('Error initializing API: $e\n$stackTrace');
     }
   }
 
   Future<void> _getImage() async {
+    debugPrint('Selecting image...');
     try {
       final source = await showModalBottomSheet<ImageSource>(
         context: context,
@@ -69,6 +70,7 @@ class _ScanPageState extends State<ScanPage> {
             isUploaded = false;
             _extractedText = '';
           });
+          debugPrint('Image selected: $_imageName');
         }
       }
     } catch (e) {
@@ -132,6 +134,7 @@ class _ScanPageState extends State<ScanPage> {
 
   @override
   Widget build(BuildContext context) {
+    debugPrint('Building ScanPage widget...');
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.title ?? 'Upload to Google Cloud'),

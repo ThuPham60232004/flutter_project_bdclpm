@@ -3,7 +3,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_project_bdclpm/features/type/presentation/type_page.dart';
 import 'package:flutter_project_bdclpm/features/type/controllers/type_page_controller.dart';
-import 'package:mockito/mockito.dart';
 import '../../test/mocks/mocks_integration.mocks.dart';
 
 Widget setupWidgetTest({required List<NavigatorObserver> observers}) {
@@ -23,7 +22,7 @@ Widget setupWidgetTest({required List<NavigatorObserver> observers}) {
 
 void main() {
   group('Kiểm thử giao diện TypePage', () {
-    testWidgets('Nên hiển thị tiêu đề và các tùy chọn đúng', (WidgetTester tester) async {
+    testWidgets('Nên chọn đúng tùy chọn và điều hướng chính xác', (WidgetTester tester) async {
       await tester.pumpWidget(setupWidgetTest(observers: []));
       await tester.pumpAndSettle();
 
@@ -34,9 +33,6 @@ void main() {
       expect(find.text('Quét hóa đơn'), findsOneWidget);
       expect(find.text('Quét pdf/excel'), findsOneWidget);
       expect(find.byType(Radio<String>), findsNWidgets(3));
-    });
-
-    testWidgets('Nên chọn đúng tùy chọn và điều hướng chính xác', (WidgetTester tester) async {
       final mockNavigatorObserver = MockNavigatorObserver();
       await tester.pumpWidget(setupWidgetTest(observers: [mockNavigatorObserver]));
       await tester.pumpAndSettle();

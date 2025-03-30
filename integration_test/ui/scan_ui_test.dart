@@ -35,34 +35,17 @@ void main() {
     );
   }
 
-  testWidgets('should display initial UI correctly',
-      (WidgetTester tester) async {
-    await tester.pumpWidget(createWidgetUnderTest());
-
-    expect(find.text('Upload to Google Cloud'), findsOneWidget);
-    expect(find.text('No image selected.'), findsOneWidget);
-    expect(find.byType(FloatingActionButton), findsOneWidget);
-  });
-
-  testWidgets('Hiển thị tùy chọn nguồn hình ảnh khi nhấn FAB',
-      (WidgetTester tester) async {
-    await tester.pumpWidget(createWidgetUnderTest());
-
-    await tester.tap(find.byType(FloatingActionButton));
-    await tester.pump();
-
-    expect(find.text('Take a photo'), findsOneWidget);
-    expect(find.text('Choose from gallery'), findsOneWidget);
-    expect(find.byIcon(Icons.camera), findsOneWidget);
-    expect(find.byIcon(Icons.photo_library), findsOneWidget);
-  });
-
 testWidgets('Hiển thị hình ảnh đã chọn từ thư viện', (WidgetTester tester) async {
   await tester.pumpWidget(createWidgetUnderTest());
-
+  expect(find.text('Upload to Google Cloud'), findsOneWidget);
+  expect(find.text('No image selected.'), findsOneWidget);
   await tester.tap(find.byType(FloatingActionButton));
+  expect(find.byType(FloatingActionButton), findsOneWidget);
   await tester.pumpAndSettle();
-
+  expect(find.text('Take a photo'), findsOneWidget);
+  expect(find.text('Choose from gallery'), findsOneWidget);
+  expect(find.byIcon(Icons.camera), findsOneWidget);
+  expect(find.byIcon(Icons.photo_library), findsOneWidget);
   await tester.tap(find.text('Choose from gallery'));
   await tester.pumpAndSettle();
   await tester.pump(Duration(seconds: 8));
