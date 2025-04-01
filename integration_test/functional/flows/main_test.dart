@@ -108,6 +108,8 @@ Future<void> main() async {
         await tester.pump(Duration(seconds: 8));
         expect(find.byType(Image), findsOneWidget);
         await tester.pumpAndSettle();
+        await tester.drag(find.byType(SingleChildScrollView), const Offset(0, -250));
+        await tester.pumpAndSettle();
         await tester.ensureVisible(find.text('Upload to Cloud'));
         await tester.pumpAndSettle();
         await tester.tap(find.text('Upload to Cloud'));

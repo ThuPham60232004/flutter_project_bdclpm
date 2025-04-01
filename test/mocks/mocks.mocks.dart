@@ -7,7 +7,7 @@ import 'dart:async' as _i11;
 import 'dart:convert' as _i32;
 import 'dart:io' as _i14;
 import 'dart:typed_data' as _i33;
-import 'dart:ui' as _i39;
+import 'dart:ui' as _i41;
 
 import 'package:camera/camera.dart' as _i25;
 import 'package:camera_platform_interface/camera_platform_interface.dart'
@@ -15,8 +15,11 @@ import 'package:camera_platform_interface/camera_platform_interface.dart'
 import 'package:cloud_firestore/cloud_firestore.dart' as _i20;
 import 'package:cloud_firestore_platform_interface/cloud_firestore_platform_interface.dart'
     as _i19;
-import 'package:file_picker/src/file_picker.dart' as _i44;
-import 'package:file_picker/src/file_picker_result.dart' as _i45;
+import 'package:connectivity_plus/connectivity_plus.dart' as _i36;
+import 'package:connectivity_plus_platform_interface/connectivity_plus_platform_interface.dart'
+    as _i37;
+import 'package:file_picker/src/file_picker.dart' as _i46;
+import 'package:file_picker/src/file_picker_result.dart' as _i47;
 import 'package:firebase_auth/firebase_auth.dart' as _i4;
 import 'package:firebase_auth_platform_interface/firebase_auth_platform_interface.dart'
     as _i3;
@@ -29,33 +32,35 @@ import 'package:flutter/material.dart' as _i18;
 import 'package:flutter/rendering.dart' as _i30;
 import 'package:flutter/scheduler.dart' as _i17;
 import 'package:flutter/services.dart' as _i29;
-import 'package:flutter/src/material/banner.dart' as _i43;
-import 'package:flutter/src/material/snack_bar.dart' as _i41;
-import 'package:flutter/src/widgets/basic.dart' as _i42;
+import 'package:flutter/src/material/banner.dart' as _i45;
+import 'package:flutter/src/material/snack_bar.dart' as _i43;
+import 'package:flutter/src/widgets/basic.dart' as _i44;
 import 'package:flutter/src/widgets/focus_manager.dart' as _i15;
 import 'package:flutter/src/widgets/framework.dart' as _i7;
 import 'package:flutter/src/widgets/notification_listener.dart' as _i34;
-import 'package:flutter/src/widgets/restoration.dart' as _i40;
+import 'package:flutter/src/widgets/restoration.dart' as _i42;
 import 'package:flutter/widgets.dart' as _i16;
 import 'package:flutter_local_notifications/src/flutter_local_notifications_plugin.dart'
-    as _i47;
-import 'package:flutter_local_notifications/src/initialization_settings.dart'
-    as _i48;
-import 'package:flutter_local_notifications/src/notification_details.dart'
-    as _i50;
-import 'package:flutter_local_notifications/src/platform_specifics/android/schedule_mode.dart'
-    as _i53;
-import 'package:flutter_local_notifications/src/platform_specifics/ios/enums.dart'
-    as _i52;
-import 'package:flutter_local_notifications/src/types.dart' as _i54;
-import 'package:flutter_local_notifications_platform_interface/flutter_local_notifications_platform_interface.dart'
     as _i49;
-import 'package:flutter_project_bdclpm/features/expense/controllers/cloud.dart'
-    as _i56;
-import 'package:flutter_project_bdclpm/features/expense/controllers/manual_voice_controllers.dart'
-    as _i57;
-import 'package:flutter_project_bdclpm/features/expense/controllers/scan_expense_controller.dart'
+import 'package:flutter_local_notifications/src/initialization_settings.dart'
+    as _i50;
+import 'package:flutter_local_notifications/src/notification_details.dart'
+    as _i52;
+import 'package:flutter_local_notifications/src/platform_specifics/android/schedule_mode.dart'
     as _i55;
+import 'package:flutter_local_notifications/src/platform_specifics/ios/enums.dart'
+    as _i54;
+import 'package:flutter_local_notifications/src/types.dart' as _i56;
+import 'package:flutter_local_notifications_platform_interface/flutter_local_notifications_platform_interface.dart'
+    as _i51;
+import 'package:flutter_project_bdclpm/features/auth/controllers/auth_controller.dart'
+    as _i60;
+import 'package:flutter_project_bdclpm/features/expense/controllers/cloud.dart'
+    as _i58;
+import 'package:flutter_project_bdclpm/features/expense/controllers/manual_voice_controllers.dart'
+    as _i59;
+import 'package:flutter_project_bdclpm/features/expense/controllers/scan_expense_controller.dart'
+    as _i57;
 import 'package:flutter_project_bdclpm/features/expense/data/auth_client_wrapper.dart'
     as _i27;
 import 'package:gcloud/common.dart' as _i10;
@@ -72,12 +77,12 @@ import 'package:image_picker_platform_interface/image_picker_platform_interface.
     as _i23;
 import 'package:mockito/mockito.dart' as _i1;
 import 'package:mockito/src/dummies.dart' as _i31;
-import 'package:permission_handler/permission_handler.dart' as _i46;
-import 'package:shared_preferences/shared_preferences.dart' as _i36;
-import 'package:speech_to_text/speech_to_text.dart' as _i37;
+import 'package:permission_handler/permission_handler.dart' as _i48;
+import 'package:shared_preferences/shared_preferences.dart' as _i38;
+import 'package:speech_to_text/speech_to_text.dart' as _i39;
 import 'package:speech_to_text_platform_interface/speech_to_text_platform_interface.dart'
-    as _i38;
-import 'package:timezone/timezone.dart' as _i51;
+    as _i40;
+import 'package:timezone/timezone.dart' as _i53;
 
 // ignore_for_file: type=lint
 // ignore_for_file: avoid_redundant_argument_values
@@ -563,6 +568,16 @@ class _FakeTextSpan_78 extends _i1.SmartFake implements _i30.TextSpan {
   @override
   String toString({_i8.DiagnosticLevel? minLevel = _i8.DiagnosticLevel.info}) =>
       super.toString();
+}
+
+class _FakeFirebaseAuth_79 extends _i1.SmartFake implements _i4.FirebaseAuth {
+  _FakeFirebaseAuth_79(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
+}
+
+class _FakeGoogleSignIn_80 extends _i1.SmartFake implements _i13.GoogleSignIn {
+  _FakeGoogleSignIn_80(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
 }
 
 /// A class which mocks [FirebaseAuth].
@@ -2792,10 +2807,37 @@ class MockClient extends _i1.Mock implements _i6.Client {
   );
 }
 
+/// A class which mocks [Connectivity].
+///
+/// See the documentation for Mockito's code generation for more information.
+class MockConnectivity extends _i1.Mock implements _i36.Connectivity {
+  MockConnectivity() {
+    _i1.throwOnMissingStub(this);
+  }
+
+  @override
+  _i11.Stream<List<_i37.ConnectivityResult>> get onConnectivityChanged =>
+      (super.noSuchMethod(
+            Invocation.getter(#onConnectivityChanged),
+            returnValue: _i11.Stream<List<_i37.ConnectivityResult>>.empty(),
+          )
+          as _i11.Stream<List<_i37.ConnectivityResult>>);
+
+  @override
+  _i11.Future<List<_i37.ConnectivityResult>> checkConnectivity() =>
+      (super.noSuchMethod(
+            Invocation.method(#checkConnectivity, []),
+            returnValue: _i11.Future<List<_i37.ConnectivityResult>>.value(
+              <_i37.ConnectivityResult>[],
+            ),
+          )
+          as _i11.Future<List<_i37.ConnectivityResult>>);
+}
+
 /// A class which mocks [SharedPreferences].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockSharedPreferences extends _i1.Mock implements _i36.SharedPreferences {
+class MockSharedPreferences extends _i1.Mock implements _i38.SharedPreferences {
   MockSharedPreferences() {
     _i1.throwOnMissingStub(this);
   }
@@ -2918,20 +2960,20 @@ class MockSharedPreferences extends _i1.Mock implements _i36.SharedPreferences {
 /// A class which mocks [SpeechToText].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockSpeechToText extends _i1.Mock implements _i37.SpeechToText {
+class MockSpeechToText extends _i1.Mock implements _i39.SpeechToText {
   MockSpeechToText() {
     _i1.throwOnMissingStub(this);
   }
 
   @override
-  set errorListener(_i37.SpeechErrorListener? _errorListener) =>
+  set errorListener(_i39.SpeechErrorListener? _errorListener) =>
       super.noSuchMethod(
         Invocation.setter(#errorListener, _errorListener),
         returnValueForMissingStub: null,
       );
 
   @override
-  set statusListener(_i37.SpeechStatusListener? _statusListener) =>
+  set statusListener(_i39.SpeechStatusListener? _statusListener) =>
       super.noSuchMethod(
         Invocation.setter(#statusListener, _statusListener),
         returnValueForMissingStub: null,
@@ -3002,11 +3044,11 @@ class MockSpeechToText extends _i1.Mock implements _i37.SpeechToText {
 
   @override
   _i11.Future<bool> initialize({
-    _i37.SpeechErrorListener? onError,
-    _i37.SpeechStatusListener? onStatus,
+    _i39.SpeechErrorListener? onError,
+    _i39.SpeechStatusListener? onStatus,
     dynamic debugLogging = false,
     Duration? finalTimeout = const Duration(milliseconds: 2000),
-    List<_i38.SpeechConfigOption>? options,
+    List<_i40.SpeechConfigOption>? options,
   }) =>
       (super.noSuchMethod(
             Invocation.method(#initialize, [], {
@@ -3040,17 +3082,17 @@ class MockSpeechToText extends _i1.Mock implements _i37.SpeechToText {
 
   @override
   _i11.Future<dynamic> listen({
-    _i37.SpeechResultListener? onResult,
+    _i39.SpeechResultListener? onResult,
     Duration? listenFor,
     Duration? pauseFor,
     String? localeId,
-    _i37.SpeechSoundLevelChange? onSoundLevelChange,
+    _i39.SpeechSoundLevelChange? onSoundLevelChange,
     dynamic cancelOnError = false,
     dynamic partialResults = true,
     dynamic onDevice = false,
-    _i38.ListenMode? listenMode = _i38.ListenMode.confirmation,
+    _i40.ListenMode? listenMode = _i40.ListenMode.confirmation,
     dynamic sampleRate = 0,
-    _i38.SpeechListenOptions? listenOptions,
+    _i40.SpeechListenOptions? listenOptions,
   }) =>
       (super.noSuchMethod(
             Invocation.method(#listen, [], {
@@ -3077,22 +3119,22 @@ class MockSpeechToText extends _i1.Mock implements _i37.SpeechToText {
   );
 
   @override
-  _i11.Future<List<_i37.LocaleName>> locales() =>
+  _i11.Future<List<_i39.LocaleName>> locales() =>
       (super.noSuchMethod(
             Invocation.method(#locales, []),
-            returnValue: _i11.Future<List<_i37.LocaleName>>.value(
-              <_i37.LocaleName>[],
+            returnValue: _i11.Future<List<_i39.LocaleName>>.value(
+              <_i39.LocaleName>[],
             ),
           )
-          as _i11.Future<List<_i37.LocaleName>>);
+          as _i11.Future<List<_i39.LocaleName>>);
 
   @override
-  _i11.Future<_i37.LocaleName?> systemLocale() =>
+  _i11.Future<_i39.LocaleName?> systemLocale() =>
       (super.noSuchMethod(
             Invocation.method(#systemLocale, []),
-            returnValue: _i11.Future<_i37.LocaleName?>.value(),
+            returnValue: _i11.Future<_i39.LocaleName?>.value(),
           )
-          as _i11.Future<_i37.LocaleName?>);
+          as _i11.Future<_i39.LocaleName?>);
 }
 
 /// A class which mocks [File].
@@ -4091,7 +4133,7 @@ class MockNavigatorState extends _i1.Mock implements _i16.NavigatorState {
   );
 
   @override
-  void setState(_i39.VoidCallback? fn) => super.noSuchMethod(
+  void setState(_i41.VoidCallback? fn) => super.noSuchMethod(
     Invocation.method(#setState, [fn]),
     returnValueForMissingStub: null,
   );
@@ -4151,7 +4193,7 @@ class MockNavigatorState extends _i1.Mock implements _i16.NavigatorState {
 
   @override
   void registerForRestoration(
-    _i40.RestorableProperty<Object?>? property,
+    _i42.RestorableProperty<Object?>? property,
     String? restorationId,
   ) => super.noSuchMethod(
     Invocation.method(#registerForRestoration, [property, restorationId]),
@@ -4159,7 +4201,7 @@ class MockNavigatorState extends _i1.Mock implements _i16.NavigatorState {
   );
 
   @override
-  void unregisterFromRestoration(_i40.RestorableProperty<Object?>? property) =>
+  void unregisterFromRestoration(_i42.RestorableProperty<Object?>? property) =>
       super.noSuchMethod(
         Invocation.method(#unregisterFromRestoration, [property]),
         returnValueForMissingStub: null,
@@ -4225,10 +4267,10 @@ class MockScaffoldMessengerState extends _i1.Mock
   );
 
   @override
-  _i18.ScaffoldFeatureController<_i41.SnackBar, _i41.SnackBarClosedReason>
+  _i18.ScaffoldFeatureController<_i43.SnackBar, _i43.SnackBarClosedReason>
   showSnackBar(
-    _i41.SnackBar? snackBar, {
-    _i42.AnimationStyle? snackBarAnimationStyle,
+    _i43.SnackBar? snackBar, {
+    _i44.AnimationStyle? snackBarAnimationStyle,
   }) =>
       (super.noSuchMethod(
             Invocation.method(
@@ -4237,8 +4279,8 @@ class MockScaffoldMessengerState extends _i1.Mock
               {#snackBarAnimationStyle: snackBarAnimationStyle},
             ),
             returnValue: _FakeScaffoldFeatureController_43<
-              _i41.SnackBar,
-              _i41.SnackBarClosedReason
+              _i43.SnackBar,
+              _i43.SnackBarClosedReason
             >(
               this,
               Invocation.method(
@@ -4249,13 +4291,13 @@ class MockScaffoldMessengerState extends _i1.Mock
             ),
           )
           as _i18.ScaffoldFeatureController<
-            _i41.SnackBar,
-            _i41.SnackBarClosedReason
+            _i43.SnackBar,
+            _i43.SnackBarClosedReason
           >);
 
   @override
   void removeCurrentSnackBar({
-    _i41.SnackBarClosedReason? reason = _i41.SnackBarClosedReason.remove,
+    _i43.SnackBarClosedReason? reason = _i43.SnackBarClosedReason.remove,
   }) => super.noSuchMethod(
     Invocation.method(#removeCurrentSnackBar, [], {#reason: reason}),
     returnValueForMissingStub: null,
@@ -4263,7 +4305,7 @@ class MockScaffoldMessengerState extends _i1.Mock
 
   @override
   void hideCurrentSnackBar({
-    _i41.SnackBarClosedReason? reason = _i41.SnackBarClosedReason.hide,
+    _i43.SnackBarClosedReason? reason = _i43.SnackBarClosedReason.hide,
   }) => super.noSuchMethod(
     Invocation.method(#hideCurrentSnackBar, [], {#reason: reason}),
     returnValueForMissingStub: null,
@@ -4277,26 +4319,26 @@ class MockScaffoldMessengerState extends _i1.Mock
 
   @override
   _i18.ScaffoldFeatureController<
-    _i43.MaterialBanner,
-    _i43.MaterialBannerClosedReason
+    _i45.MaterialBanner,
+    _i45.MaterialBannerClosedReason
   >
-  showMaterialBanner(_i43.MaterialBanner? materialBanner) =>
+  showMaterialBanner(_i45.MaterialBanner? materialBanner) =>
       (super.noSuchMethod(
             Invocation.method(#showMaterialBanner, [materialBanner]),
             returnValue: _FakeScaffoldFeatureController_43<
-              _i43.MaterialBanner,
-              _i43.MaterialBannerClosedReason
+              _i45.MaterialBanner,
+              _i45.MaterialBannerClosedReason
             >(this, Invocation.method(#showMaterialBanner, [materialBanner])),
           )
           as _i18.ScaffoldFeatureController<
-            _i43.MaterialBanner,
-            _i43.MaterialBannerClosedReason
+            _i45.MaterialBanner,
+            _i45.MaterialBannerClosedReason
           >);
 
   @override
   void removeCurrentMaterialBanner({
-    _i43.MaterialBannerClosedReason? reason =
-        _i43.MaterialBannerClosedReason.remove,
+    _i45.MaterialBannerClosedReason? reason =
+        _i45.MaterialBannerClosedReason.remove,
   }) => super.noSuchMethod(
     Invocation.method(#removeCurrentMaterialBanner, [], {#reason: reason}),
     returnValueForMissingStub: null,
@@ -4304,8 +4346,8 @@ class MockScaffoldMessengerState extends _i1.Mock
 
   @override
   void hideCurrentMaterialBanner({
-    _i43.MaterialBannerClosedReason? reason =
-        _i43.MaterialBannerClosedReason.hide,
+    _i45.MaterialBannerClosedReason? reason =
+        _i45.MaterialBannerClosedReason.hide,
   }) => super.noSuchMethod(
     Invocation.method(#hideCurrentMaterialBanner, [], {#reason: reason}),
     returnValueForMissingStub: null,
@@ -4353,7 +4395,7 @@ class MockScaffoldMessengerState extends _i1.Mock
   );
 
   @override
-  void setState(_i39.VoidCallback? fn) => super.noSuchMethod(
+  void setState(_i41.VoidCallback? fn) => super.noSuchMethod(
     Invocation.method(#setState, [fn]),
     returnValueForMissingStub: null,
   );
@@ -4427,18 +4469,18 @@ class MockScaffoldMessengerState extends _i1.Mock
 /// A class which mocks [FilePicker].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockFilePicker extends _i1.Mock implements _i44.FilePicker {
+class MockFilePicker extends _i1.Mock implements _i46.FilePicker {
   MockFilePicker() {
     _i1.throwOnMissingStub(this);
   }
 
   @override
-  _i11.Future<_i45.FilePickerResult?> pickFiles({
+  _i11.Future<_i47.FilePickerResult?> pickFiles({
     String? dialogTitle,
     String? initialDirectory,
-    _i44.FileType? type = _i44.FileType.any,
+    _i46.FileType? type = _i46.FileType.any,
     List<String>? allowedExtensions,
-    dynamic Function(_i44.FilePickerStatus)? onFileLoading,
+    dynamic Function(_i46.FilePickerStatus)? onFileLoading,
     bool? allowCompression = true,
     int? compressionQuality = 30,
     bool? allowMultiple = false,
@@ -4462,9 +4504,9 @@ class MockFilePicker extends _i1.Mock implements _i44.FilePicker {
               #lockParentWindow: lockParentWindow,
               #readSequential: readSequential,
             }),
-            returnValue: _i11.Future<_i45.FilePickerResult?>.value(),
+            returnValue: _i11.Future<_i47.FilePickerResult?>.value(),
           )
-          as _i11.Future<_i45.FilePickerResult?>);
+          as _i11.Future<_i47.FilePickerResult?>);
 
   @override
   _i11.Future<bool?> clearTemporaryFiles() =>
@@ -4495,7 +4537,7 @@ class MockFilePicker extends _i1.Mock implements _i44.FilePicker {
     String? dialogTitle,
     String? fileName,
     String? initialDirectory,
-    _i44.FileType? type = _i44.FileType.any,
+    _i46.FileType? type = _i46.FileType.any,
     List<String>? allowedExtensions,
     _i33.Uint8List? bytes,
     bool? lockParentWindow = false,
@@ -4519,7 +4561,7 @@ class MockFilePicker extends _i1.Mock implements _i44.FilePicker {
 ///
 /// See the documentation for Mockito's code generation for more information.
 // ignore: must_be_immutable
-class MockPermission extends _i1.Mock implements _i46.Permission {
+class MockPermission extends _i1.Mock implements _i48.Permission {
   MockPermission() {
     _i1.throwOnMissingStub(this);
   }
@@ -6616,7 +6658,7 @@ class MockCameraController extends _i1.Mock implements _i25.CameraController {
           as _i11.Future<void>);
 
   @override
-  _i11.Future<void> setExposurePoint(_i39.Offset? point) =>
+  _i11.Future<void> setExposurePoint(_i41.Offset? point) =>
       (super.noSuchMethod(
             Invocation.method(#setExposurePoint, [point]),
             returnValue: _i11.Future<void>.value(),
@@ -6686,7 +6728,7 @@ class MockCameraController extends _i1.Mock implements _i25.CameraController {
           as _i11.Future<void>);
 
   @override
-  _i11.Future<void> setFocusPoint(_i39.Offset? point) =>
+  _i11.Future<void> setFocusPoint(_i41.Offset? point) =>
       (super.noSuchMethod(
             Invocation.method(#setFocusPoint, [point]),
             returnValue: _i11.Future<void>.value(),
@@ -6712,13 +6754,13 @@ class MockCameraController extends _i1.Mock implements _i25.CameraController {
           as _i11.Future<void>);
 
   @override
-  void removeListener(_i39.VoidCallback? listener) => super.noSuchMethod(
+  void removeListener(_i41.VoidCallback? listener) => super.noSuchMethod(
     Invocation.method(#removeListener, [listener]),
     returnValueForMissingStub: null,
   );
 
   @override
-  void addListener(_i39.VoidCallback? listener) => super.noSuchMethod(
+  void addListener(_i41.VoidCallback? listener) => super.noSuchMethod(
     Invocation.method(#addListener, [listener]),
     returnValueForMissingStub: null,
   );
@@ -6776,17 +6818,17 @@ class MockCameraDescription extends _i1.Mock implements _i24.CameraDescription {
 ///
 /// See the documentation for Mockito's code generation for more information.
 class MockFlutterLocalNotificationsPlugin extends _i1.Mock
-    implements _i47.FlutterLocalNotificationsPlugin {
+    implements _i49.FlutterLocalNotificationsPlugin {
   MockFlutterLocalNotificationsPlugin() {
     _i1.throwOnMissingStub(this);
   }
 
   @override
   _i11.Future<bool?> initialize(
-    _i48.InitializationSettings? initializationSettings, {
-    _i49.DidReceiveNotificationResponseCallback?
+    _i50.InitializationSettings? initializationSettings, {
+    _i51.DidReceiveNotificationResponseCallback?
     onDidReceiveNotificationResponse,
-    _i49.DidReceiveBackgroundNotificationResponseCallback?
+    _i51.DidReceiveBackgroundNotificationResponseCallback?
     onDidReceiveBackgroundNotificationResponse,
   }) =>
       (super.noSuchMethod(
@@ -6805,21 +6847,21 @@ class MockFlutterLocalNotificationsPlugin extends _i1.Mock
           as _i11.Future<bool?>);
 
   @override
-  _i11.Future<_i49.NotificationAppLaunchDetails?>
+  _i11.Future<_i51.NotificationAppLaunchDetails?>
   getNotificationAppLaunchDetails() =>
       (super.noSuchMethod(
             Invocation.method(#getNotificationAppLaunchDetails, []),
             returnValue:
-                _i11.Future<_i49.NotificationAppLaunchDetails?>.value(),
+                _i11.Future<_i51.NotificationAppLaunchDetails?>.value(),
           )
-          as _i11.Future<_i49.NotificationAppLaunchDetails?>);
+          as _i11.Future<_i51.NotificationAppLaunchDetails?>);
 
   @override
   _i11.Future<void> show(
     int? id,
     String? title,
     String? body,
-    _i50.NotificationDetails? notificationDetails, {
+    _i52.NotificationDetails? notificationDetails, {
     String? payload,
   }) =>
       (super.noSuchMethod(
@@ -6856,13 +6898,13 @@ class MockFlutterLocalNotificationsPlugin extends _i1.Mock
     int? id,
     String? title,
     String? body,
-    _i51.TZDateTime? scheduledDate,
-    _i50.NotificationDetails? notificationDetails, {
-    required _i52.UILocalNotificationDateInterpretation?
+    _i53.TZDateTime? scheduledDate,
+    _i52.NotificationDetails? notificationDetails, {
+    required _i54.UILocalNotificationDateInterpretation?
     uiLocalNotificationDateInterpretation,
-    required _i53.AndroidScheduleMode? androidScheduleMode,
+    required _i55.AndroidScheduleMode? androidScheduleMode,
     String? payload,
-    _i54.DateTimeComponents? matchDateTimeComponents,
+    _i56.DateTimeComponents? matchDateTimeComponents,
   }) =>
       (super.noSuchMethod(
             Invocation.method(
@@ -6886,9 +6928,9 @@ class MockFlutterLocalNotificationsPlugin extends _i1.Mock
     int? id,
     String? title,
     String? body,
-    _i49.RepeatInterval? repeatInterval,
-    _i50.NotificationDetails? notificationDetails, {
-    required _i53.AndroidScheduleMode? androidScheduleMode,
+    _i51.RepeatInterval? repeatInterval,
+    _i52.NotificationDetails? notificationDetails, {
+    required _i55.AndroidScheduleMode? androidScheduleMode,
     String? payload,
   }) =>
       (super.noSuchMethod(
@@ -6908,9 +6950,9 @@ class MockFlutterLocalNotificationsPlugin extends _i1.Mock
     String? title,
     String? body,
     Duration? repeatDurationInterval,
-    _i50.NotificationDetails? notificationDetails, {
-    _i53.AndroidScheduleMode? androidScheduleMode =
-        _i53.AndroidScheduleMode.exact,
+    _i52.NotificationDetails? notificationDetails, {
+    _i55.AndroidScheduleMode? androidScheduleMode =
+        _i55.AndroidScheduleMode.exact,
     String? payload,
   }) =>
       (super.noSuchMethod(
@@ -6925,33 +6967,33 @@ class MockFlutterLocalNotificationsPlugin extends _i1.Mock
           as _i11.Future<void>);
 
   @override
-  _i11.Future<List<_i49.PendingNotificationRequest>>
+  _i11.Future<List<_i51.PendingNotificationRequest>>
   pendingNotificationRequests() =>
       (super.noSuchMethod(
             Invocation.method(#pendingNotificationRequests, []),
             returnValue:
-                _i11.Future<List<_i49.PendingNotificationRequest>>.value(
-                  <_i49.PendingNotificationRequest>[],
+                _i11.Future<List<_i51.PendingNotificationRequest>>.value(
+                  <_i51.PendingNotificationRequest>[],
                 ),
           )
-          as _i11.Future<List<_i49.PendingNotificationRequest>>);
+          as _i11.Future<List<_i51.PendingNotificationRequest>>);
 
   @override
-  _i11.Future<List<_i49.ActiveNotification>> getActiveNotifications() =>
+  _i11.Future<List<_i51.ActiveNotification>> getActiveNotifications() =>
       (super.noSuchMethod(
             Invocation.method(#getActiveNotifications, []),
-            returnValue: _i11.Future<List<_i49.ActiveNotification>>.value(
-              <_i49.ActiveNotification>[],
+            returnValue: _i11.Future<List<_i51.ActiveNotification>>.value(
+              <_i51.ActiveNotification>[],
             ),
           )
-          as _i11.Future<List<_i49.ActiveNotification>>);
+          as _i11.Future<List<_i51.ActiveNotification>>);
 }
 
 /// A class which mocks [InitializationSettings].
 ///
 /// See the documentation for Mockito's code generation for more information.
 class MockInitializationSettings extends _i1.Mock
-    implements _i48.InitializationSettings {
+    implements _i50.InitializationSettings {
   MockInitializationSettings() {
     _i1.throwOnMissingStub(this);
   }
@@ -6961,7 +7003,7 @@ class MockInitializationSettings extends _i1.Mock
 ///
 /// See the documentation for Mockito's code generation for more information.
 class MockNotificationDetails extends _i1.Mock
-    implements _i50.NotificationDetails {
+    implements _i52.NotificationDetails {
   MockNotificationDetails() {
     _i1.throwOnMissingStub(this);
   }
@@ -6971,7 +7013,7 @@ class MockNotificationDetails extends _i1.Mock
 ///
 /// See the documentation for Mockito's code generation for more information.
 class MockScanExpenseController extends _i1.Mock
-    implements _i55.ScanExpenseController {
+    implements _i57.ScanExpenseController {
   MockScanExpenseController() {
     _i1.throwOnMissingStub(this);
   }
@@ -7091,7 +7133,7 @@ class MockScanExpenseController extends _i1.Mock
           as _i11.Future<void>);
 
   @override
-  _i11.Future<void> saveImage(_i56.CloudApi? api) =>
+  _i11.Future<void> saveImage(_i58.CloudApi? api) =>
       (super.noSuchMethod(
             Invocation.method(#saveImage, [api]),
             returnValue: _i11.Future<void>.value(),
@@ -7100,7 +7142,7 @@ class MockScanExpenseController extends _i1.Mock
           as _i11.Future<void>);
 
   @override
-  _i11.Future<void> extractText(_i56.CloudApi? api) =>
+  _i11.Future<void> extractText(_i58.CloudApi? api) =>
       (super.noSuchMethod(
             Invocation.method(#extractText, [api]),
             returnValue: _i11.Future<void>.value(),
@@ -7144,7 +7186,7 @@ class MockScanExpenseController extends _i1.Mock
 /// A class which mocks [CloudApi].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockCloudApi extends _i1.Mock implements _i56.CloudApi {
+class MockCloudApi extends _i1.Mock implements _i58.CloudApi {
   MockCloudApi() {
     _i1.throwOnMissingStub(this);
   }
@@ -7291,7 +7333,7 @@ class MockAuthClientWrapper extends _i1.Mock implements _i27.AuthClientWrapper {
 /// A class which mocks [ExpenseManager].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockExpenseManager extends _i1.Mock implements _i57.ExpenseManager {
+class MockExpenseManager extends _i1.Mock implements _i59.ExpenseManager {
   MockExpenseManager() {
     _i1.throwOnMissingStub(this);
   }
@@ -7573,13 +7615,13 @@ class MockTextEditingController extends _i1.Mock
   );
 
   @override
-  void addListener(_i39.VoidCallback? listener) => super.noSuchMethod(
+  void addListener(_i41.VoidCallback? listener) => super.noSuchMethod(
     Invocation.method(#addListener, [listener]),
     returnValueForMissingStub: null,
   );
 
   @override
-  void removeListener(_i39.VoidCallback? listener) => super.noSuchMethod(
+  void removeListener(_i41.VoidCallback? listener) => super.noSuchMethod(
     Invocation.method(#removeListener, [listener]),
     returnValueForMissingStub: null,
   );
@@ -7595,4 +7637,85 @@ class MockTextEditingController extends _i1.Mock
     Invocation.method(#notifyListeners, []),
     returnValueForMissingStub: null,
   );
+}
+
+/// A class which mocks [AuthController].
+///
+/// See the documentation for Mockito's code generation for more information.
+class MockAuthController extends _i1.Mock implements _i60.AuthController {
+  MockAuthController() {
+    _i1.throwOnMissingStub(this);
+  }
+
+  @override
+  _i4.FirebaseAuth get firebaseAuth =>
+      (super.noSuchMethod(
+            Invocation.getter(#firebaseAuth),
+            returnValue: _FakeFirebaseAuth_79(
+              this,
+              Invocation.getter(#firebaseAuth),
+            ),
+          )
+          as _i4.FirebaseAuth);
+
+  @override
+  _i13.GoogleSignIn get googleSignIn =>
+      (super.noSuchMethod(
+            Invocation.getter(#googleSignIn),
+            returnValue: _FakeGoogleSignIn_80(
+              this,
+              Invocation.getter(#googleSignIn),
+            ),
+          )
+          as _i13.GoogleSignIn);
+
+  @override
+  _i6.Client get httpClient =>
+      (super.noSuchMethod(
+            Invocation.getter(#httpClient),
+            returnValue: _FakeClient_69(this, Invocation.getter(#httpClient)),
+          )
+          as _i6.Client);
+
+  @override
+  _i11.Stream<_i4.User?> get userStream =>
+      (super.noSuchMethod(
+            Invocation.getter(#userStream),
+            returnValue: _i11.Stream<_i4.User?>.empty(),
+          )
+          as _i11.Stream<_i4.User?>);
+
+  @override
+  _i11.Future<void> initPrefs() =>
+      (super.noSuchMethod(
+            Invocation.method(#initPrefs, []),
+            returnValue: _i11.Future<void>.value(),
+            returnValueForMissingStub: _i11.Future<void>.value(),
+          )
+          as _i11.Future<void>);
+
+  @override
+  _i11.Future<bool> isLoggedIn() =>
+      (super.noSuchMethod(
+            Invocation.method(#isLoggedIn, []),
+            returnValue: _i11.Future<bool>.value(false),
+          )
+          as _i11.Future<bool>);
+
+  @override
+  _i11.Future<_i4.User?> loginWithGoogle() =>
+      (super.noSuchMethod(
+            Invocation.method(#loginWithGoogle, []),
+            returnValue: _i11.Future<_i4.User?>.value(),
+          )
+          as _i11.Future<_i4.User?>);
+
+  @override
+  _i11.Future<void> signOut() =>
+      (super.noSuchMethod(
+            Invocation.method(#signOut, []),
+            returnValue: _i11.Future<void>.value(),
+            returnValueForMissingStub: _i11.Future<void>.value(),
+          )
+          as _i11.Future<void>);
 }

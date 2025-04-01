@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_project_bdclpm/features/auth/controllers/auth_controller.dart';
 import 'package:iconly/iconly.dart';
 import '../../home/pages/home_page.dart';
-
+import 'package:connectivity_plus/connectivity_plus.dart';
 class LoginPage extends StatelessWidget {
   final AuthController authController;
 
@@ -49,6 +49,17 @@ class LoginPage extends StatelessWidget {
                 FilledButton.tonalIcon(
                   onPressed: () async {
                     try {
+                      final connectivityResults = await Connectivity().checkConnectivity();
+                      final connectivityResult = connectivityResults.isNotEmpty 
+                          ? connectivityResults.first 
+                          : ConnectivityResult.none;
+
+                      if (connectivityResult == ConnectivityResult.none) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text("Không có kết nối mạng")),
+                        );
+                        return;
+                      }
                       final user = await authController.loginWithGoogle();
                       if (user != null && context.mounted) {
                         Navigator.of(context).pushReplacement(

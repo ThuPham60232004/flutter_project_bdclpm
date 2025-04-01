@@ -22,7 +22,7 @@ void main() {
       home: Scaffold(
         body: ScanExpensePage(
           storeName: 'quan an thien tan',
-          totalAmount: 100.000,
+          totalAmount: 100000,
           description: 'Các mặt hàng liên quan đến thực phẩm',
           date: '2025-03-17',
           categoryId: '678d18f502455271e95277b4',
@@ -52,5 +52,11 @@ void main() {
     expect(find.text('Loại tiền tệ'), findsOneWidget);
 
     expect(find.text('Lưu chi tiêu'), findsOneWidget);
+    expect(find.widgetWithText(TextFormField, 'quan an thien tan'), findsOneWidget);
+    expect(find.widgetWithText(TextFormField, mockController.formatCurrency(100000)), findsOneWidget);
+    expect(find.widgetWithText(TextFormField, '2025-03-17'), findsOneWidget);
+    expect(find.widgetWithText(TextFormField, 'Các mặt hàng liên quan đến thực phẩm'), findsOneWidget);
+    expect(find.widgetWithText(TextFormField, 'Thực phẩm'), findsOneWidget);
+    expect(find.text('VND'), findsOneWidget);
   });
 }

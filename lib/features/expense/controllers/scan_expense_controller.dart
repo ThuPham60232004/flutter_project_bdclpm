@@ -6,7 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter_project_bdclpm/features/expense/controllers/cloud.dart';
-
+import 'package:flutter/foundation.dart';
 class ScanExpenseController {
   String? userId;
   File? image;
@@ -59,20 +59,28 @@ class ScanExpenseController {
   }
 
   Future<void> saveImage(CloudApi api) async {
-    if (imageBytes == null || imageName == null) {
-      throw Exception('Please select an image before uploading.');
-    }
-
-    loading = true;
-    try {
-      imageUrl = await api.saveAndGetUrl(imageName!, imageBytes!);
-      isUploaded = true;
-    } catch (e) {
-      throw Exception('Error uploading image: ${e.toString()}');
-    } finally {
-      loading = false;
-    }
+  if (imageBytes == null || imageName == null) {
+    debugPrint('[ERROR] Image not selected');
+    throw Exception('Vui lòng chọn ảnh trước khi tải lên');
   }
+
+  loading = true;
+  try {
+    debugPrint('[UPLOAD] Starting upload: $imageName');
+    debugPrint('[DEBUG] Image size: ${imageBytes!.length} bytes');
+    
+    imageUrl = await api.saveAndGetUrl(imageName!, imageBytes!);
+    isUploaded = true;
+    
+    debugPrint('[SUCCESS] Image uploaded to: $imageUrl');
+  } catch (e, stackTrace) {
+    debugPrint('[ERROR] Upload failed: ${e.toString()}');
+    debugPrint('[STACKTRACE] ${stackTrace.toString()}');
+    throw Exception('Tải ảnh lên thất bại: ${e.toString().replaceAll('SERVER_ERROR:', '')}');
+  } finally {
+    loading = false;
+  }
+}
 
   Future<void> extractText(CloudApi api) async {
     if (imageBytes == null) {

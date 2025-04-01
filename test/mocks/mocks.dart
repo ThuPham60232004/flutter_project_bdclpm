@@ -13,7 +13,9 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:camera/camera.dart';
+import 'package:flutter_project_bdclpm/features/auth/controllers/auth_controller.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_project_bdclpm/features/expense/controllers/scan_expense_controller.dart';
 import 'package:flutter_project_bdclpm/features/expense/controllers/cloud.dart';
@@ -40,6 +42,7 @@ import 'package:flutter_project_bdclpm/features/expense/data/auth_client_wrapper
   GoogleSignInAccount,
   GoogleSignInAuthentication,
   http.Client,
+  Connectivity,
   SharedPreferences,
   stt.SpeechToText,
   File,
@@ -70,6 +73,7 @@ import 'package:flutter_project_bdclpm/features/expense/data/auth_client_wrapper
   CloudApi,
   AuthClientWrapper,
   ExpenseManager,
-  TextEditingController
+  TextEditingController,
+  AuthController
 ])
 void main() {}
